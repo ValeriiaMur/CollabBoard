@@ -1,0 +1,8 @@
+// DEPRECATED — Prisma has been replaced by Firebase Firestore.
+// Database schema is now defined by Firestore collections:
+//   - users (managed by @auth/firebase-adapter)
+//   - accounts (managed by @auth/firebase-adapter)
+//   - sessions (managed by @auth/firebase-adapter)
+//   - boards { name, ownerId, createdAt, updatedAt }
+//
+// This file is no longer used. Safe to delete.

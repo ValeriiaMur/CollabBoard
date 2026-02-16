@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure tldraw fills its container */
+.tl-container {
+  position: absolute !important;
+  inset: 0;
+}

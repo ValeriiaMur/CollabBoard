@@ -1,0 +1,53 @@
+# Environment & secrets
+.env
+.env.*
+.env*.local
+*.pem
+*.key
+*.cert
+
+# Dependencies
+node_modules/
+.pnp.*
+.yarn/
+
+# Build output
+.next/
+out/
+build/
+dist/
+coverage/
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Vercel / deployment
+.vercel/
+
+# Generated files
+next-env.d.ts
+*.tsbuildinfo
+
+# Media & large assets
+public/fonts/
+public/videos/
+*.mp4
+*.webm
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.ico
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
