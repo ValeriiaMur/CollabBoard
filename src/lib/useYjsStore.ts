@@ -121,6 +121,7 @@ export function useYjsStore({
     }
 
     function handleSync(synced: boolean) {
+      console.log("[useYjsStore] sync event:", synced);
       if (synced) {
         loadInitialState();
         setStoreWithStatus({
@@ -133,6 +134,7 @@ export function useYjsStore({
 
     // If provider already synced (reconnect case), load immediately
     if (provider.synced) {
+      console.log("[useYjsStore] provider already synced");
       loadInitialState();
       setStoreWithStatus({
         status: "synced-remote",
@@ -145,6 +147,7 @@ export function useYjsStore({
 
     // Track WebSocket connection status
     function handleStatus({ status }: { status: string }) {
+      console.log("[useYjsStore] connection status:", status);
       setStoreWithStatus((prev) =>
         prev.status === "synced-remote"
           ? {
@@ -157,14 +160,33 @@ export function useYjsStore({
     }
     provider.on("status", handleStatus);
 
+    // Connection timeout — if not synced within 10s, show error
+    const timeout = setTimeout(() => {
+      setStoreWithStatus((prev) => {
+        if (prev.status === "loading") {
+          console.error(
+            "[useYjsStore] Connection timeout. Is PartyKit running on",
+            hostUrl,
+            "? Run: npx partykit dev"
+          );
+          return {
+            status: "error",
+            error: "Connection timeout — PartyKit server may not be running",
+          };
+        }
+        return prev;
+      });
+    }, 10000);
+
     /* ─── Cleanup ────────────────────────────────────────── */
     return () => {
+      clearTimeout(timeout);
       unsubStore();
       yStore.unobserveDeep(handleYjsChange as any);
       provider.off("sync", handleSync);
       provider.off("status", handleStatus);
     };
-  }, [yDoc, yStore, provider]);
+  }, [yDoc, yStore, provider, hostUrl]);
 
   // Destroy provider + doc on full unmount
   useEffect(() => {

@@ -20,8 +20,9 @@ export default async function BoardPage({ params }: BoardPageProps) {
   const userImage = session.user.image ?? "";
 
   // PartyKit host: use env var in production, localhost in dev
+  // Using || instead of ?? so empty string "" also falls back to default
   const partyHost =
-    process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
+    process.env.NEXT_PUBLIC_PARTYKIT_HOST || "localhost:1999";
 
   return (
     <BoardRoom

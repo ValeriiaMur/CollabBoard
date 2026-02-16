@@ -92,11 +92,23 @@ export function CollaborativeBoard({
   if (storeWithStatus.status === "error") {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-gray-50">
-        <div className="text-center text-red-500">
-          <p className="text-lg font-semibold">Connection Error</p>
-          <p className="mt-1 text-sm">
-            Failed to connect to the board. Please refresh.
+        <div className="text-center max-w-md">
+          <p className="text-lg font-semibold text-red-500">Connection Error</p>
+          <p className="mt-2 text-sm text-gray-600">
+            Could not connect to the PartyKit sync server.
           </p>
+          <p className="mt-2 text-xs text-gray-400">
+            Make sure PartyKit is running:{" "}
+            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-600">
+              npx partykit dev
+            </code>
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded-lg bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );

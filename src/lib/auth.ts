@@ -2,21 +2,25 @@ import { type NextAuthOptions } from "next-auth";
 import { FirestoreAdapter } from "@auth/firebase-adapter";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
-import { cert } from "firebase-admin/app";
+import { cert, applicationDefault } from "firebase-admin/app";
 
 /**
  * Build the Firestore adapter credential.
- * Supports either a full service-account JSON string or individual env vars.
+ * Supports: full JSON key, individual env vars, or Application Default Credentials.
  */
 function getFirestoreCredential() {
   if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
     return cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY));
   }
-  return cert({
-    projectId: process.env.FIREBASE_PROJECT_ID!,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
-  });
+  if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    return cert({
+      projectId: process.env.MY_FIREBASE_PROJECT_ID!,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+    });
+  }
+  // Application Default Credentials (gcloud auth application-default login)
+  return applicationDefault();
 }
 
 export const authOptions: NextAuthOptions = {
