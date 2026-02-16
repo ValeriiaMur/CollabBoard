@@ -34,3 +34,5 @@ env:
     secret: GITHUB_CLIENT_ID
   - variable: MY_FIREBADE_PROJECT_ID
     secret: FIREBASE_PROJECT_ID
+  - variable: NEXT_PUBLIC_PARTYKIT_HOST
+    secret: NEXT_PUBLIC_PARTYKIT_HOST
