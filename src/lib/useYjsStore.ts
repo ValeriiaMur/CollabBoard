@@ -148,13 +148,11 @@ export function useYjsStore({
     // Track WebSocket connection status
     function handleStatus({ status }: { status: string }) {
       console.log("[useYjsStore] connection status:", status);
+      const connectionStatus: "online" | "offline" =
+        status === "connected" ? "online" : "offline";
       setStoreWithStatus((prev) =>
         prev.status === "synced-remote"
-          ? {
-              ...prev,
-              connectionStatus:
-                status === "connected" ? "online" : "offline",
-            }
+          ? { ...prev, connectionStatus }
           : prev
       );
     }
@@ -170,8 +168,8 @@ export function useYjsStore({
             "? Run: npx partykit dev"
           );
           return {
-            status: "error",
-            error: "Connection timeout — PartyKit server may not be running",
+            status: "error" as const,
+            error: new Error("Connection timeout — PartyKit server may not be running"),
           };
         }
         return prev;
