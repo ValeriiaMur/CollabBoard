@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { Confetti } from "@/components/Confetti";
 
 interface BoardSummary {
   id: string;
@@ -24,6 +25,16 @@ export function DashboardClient({
   const router = useRouter();
   const [boards, setBoards] = useState(initialBoards);
   const [isCreating, setIsCreating] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  // Fire confetti once per login session
+  useEffect(() => {
+    const key = "collabboard_confetti_shown";
+    if (!sessionStorage.getItem(key)) {
+      setShowConfetti(true);
+      sessionStorage.setItem(key, "1");
+    }
+  }, []);
 
   async function createBoard() {
     setIsCreating(true);
@@ -54,16 +65,18 @@ export function DashboardClient({
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Confetti on first login */}
+      {showConfetti && <Confetti />}
+
       {/* Header */}
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
-              CB
-            </div>
-            <h1 className="text-lg font-semibold text-gray-900">
-              CollabBoard
-            </h1>
+            <img
+              src="/images/logo.png"
+              alt="CollabBoard"
+              className="h-8 w-auto"
+            />
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">

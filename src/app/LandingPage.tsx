@@ -6,26 +6,24 @@ export function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="w-full max-w-md px-6 text-center">
-        {/* Logo */}
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 shadow-lg shadow-brand-600/30">
-          <svg
-            className="h-8 w-8 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zm-10 9a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zm10-1a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1h-4a1 1 0 01-1-1v-5z"
-            />
-          </svg>
+        {/* Ice Ice Baby gif */}
+        <div className="mb-4">
+          <img
+            src="https://media.tenor.com/3Meo4yhrnd4AAAAM/vanilla-ice-ice-ice-baby.gif"
+            alt="Ice Ice Baby"
+            className="mx-auto h-28 rounded-xl"
+          />
         </div>
 
-        {/* Title */}
-        <h1 className="text-3xl font-bold text-gray-900">CollabBoard</h1>
-        <p className="mt-2 text-gray-500">
+        {/* Logo */}
+        <img
+          src="/images/logo.png"
+          alt="CollabBoard"
+          className="mx-auto mb-4 h-24 w-auto"
+        />
+
+        {/* Tagline */}
+        <p className="text-gray-500">
           Real-time collaborative whiteboard with multiplayer sync
         </p>
 

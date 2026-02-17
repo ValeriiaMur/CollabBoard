@@ -8,6 +8,7 @@ import { useAwareness } from "@/lib/useAwareness";
 import { AwarenessProvider } from "@/lib/AwarenessContext";
 import { LiveCursors } from "./LiveCursors";
 import { PresenceAvatars } from "./PresenceAvatars";
+import { BoardHeader } from "./BoardHeader";
 
 interface CollaborativeBoardProps {
   boardId: string;
@@ -116,27 +117,30 @@ export function CollaborativeBoard({
 
   return (
     <AwarenessProvider value={{ others, self, setCursor }}>
-      <div className="relative h-screen w-screen">
-        {/* Presence: who's online — top-right overlay */}
-        <div className="absolute right-4 top-4 z-50">
-          <PresenceAvatars />
-        </div>
-
-        {/* Board name — top-left overlay */}
-        <div className="absolute left-16 top-4 z-50">
-          <span className="rounded-lg bg-white/80 px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm">
-            {boardId}
-          </span>
-        </div>
-
-        {/* tldraw canvas with PartyKit-synced store */}
-        <Tldraw
-          store={storeWithStatus}
-          onMount={handleMount}
-          components={{
-            InFrontOfTheCanvas: LiveCursors,
-          }}
+      <div className="flex h-screen w-screen flex-col">
+        {/* Board header with nav, share, sign out */}
+        <BoardHeader
+          boardId={boardId}
+          userName={userName}
+          userImage={userImage}
         />
+
+        {/* Canvas area — fills remaining height */}
+        <div className="relative flex-1">
+          {/* Presence: who's online — top-right of canvas */}
+          <div className="absolute right-4 top-2 z-50">
+            <PresenceAvatars />
+          </div>
+
+          {/* tldraw canvas with PartyKit-synced store */}
+          <Tldraw
+            store={storeWithStatus}
+            onMount={handleMount}
+            components={{
+              InFrontOfTheCanvas: LiveCursors,
+            }}
+          />
+        </div>
       </div>
     </AwarenessProvider>
   );

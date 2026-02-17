@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   title: "CollabBoard — Real-Time Collaborative Whiteboard",
   description:
     "A collaborative whiteboard with real-time sync, multiplayer cursors, and AI-powered board manipulation.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({

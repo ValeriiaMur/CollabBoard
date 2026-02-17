@@ -4,26 +4,47 @@ Real-time collaborative whiteboard built with Next.js, tldraw, Yjs, and PartyKit
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 14 (App Router) + TypeScript + Tailwind CSS |
-| Canvas | tldraw v2 |
-| Real-Time Sync | Yjs (CRDT) + PartyKit (Cloudflare Workers) |
-| Authentication | NextAuth.js (Google + GitHub OAuth) |
-| Database | Firebase Firestore |
-| Deployment | Vercel (app) + PartyKit/Cloudflare (sync server) |
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Framework | [Next.js](https://nextjs.org/) (App Router) | 14.2.21 |
+| Language | [TypeScript](https://www.typescriptlang.org/) | 5.6 |
+| UI / Styling | [Tailwind CSS](https://tailwindcss.com/) | 3.4.17 |
+| Canvas / Whiteboard | [tldraw](https://tldraw.dev/) | 2.4.0 |
+| Real-Time Sync (CRDT) | [Yjs](https://yjs.dev/) | 13.6.0 |
+| WebSocket Server | [PartyKit](https://www.partykit.io/) (Cloudflare Workers) | 0.0.111 |
+| PartyKit Yjs Adapter | [y-partykit](https://github.com/partykit/y-partykit) | 0.0.25 |
+| Authentication | [NextAuth.js](https://next-auth.js.org/) (Google + GitHub OAuth) | 4.24.11 |
+| Database / Auth Adapter | [Firebase Admin SDK](https://firebase.google.com/) + Firestore | 13.0.0 |
+| Client-Side Firebase | [Firebase JS SDK](https://firebase.google.com/) | 11.2.0 |
+| Dev Tooling | concurrently, ESLint, PostCSS, Autoprefixer | — |
+| Deployment | [Vercel](https://vercel.com/) (app) + [PartyKit / Cloudflare](https://www.partykit.io/) (sync server) | — |
 
-## MVP Features
+## Features
 
+### Canvas & Drawing
 - [x] Infinite board with pan/zoom
 - [x] Sticky notes with editable text
 - [x] Shapes (rectangle, circle, line, arrow)
 - [x] Create, move, and edit objects
-- [x] Real-time sync between 2+ users
-- [x] Multiplayer cursors with name labels
-- [x] Presence awareness (who's online)
-- [x] User authentication (Google/GitHub OAuth)
-- [x] Deployed and publicly accessible
+- [x] Full tldraw toolbar (select, draw, erase, shapes, text, etc.)
+
+### Real-Time Collaboration
+- [x] Real-time sync between 2+ users via Yjs CRDT
+- [x] Multiplayer cursors with name labels and user colors
+- [x] Presence awareness (who's online, avatar indicators)
+- [x] Deterministic color assignment per user (10-color palette)
+- [x] Board state persists in Cloudflare Durable Object storage
+
+### Authentication & Board Management
+- [x] User authentication (Google + GitHub OAuth)
+- [x] Personal dashboard with board listing
+- [x] Create and delete boards
+- [x] Protected routes (redirect to sign-in if unauthenticated)
+
+### Navigation & Sharing
+- [x] Persistent header on boards (logo, back to dashboard, user info, sign out)
+- [x] Share dropdown: copy link, share on X (Twitter), share on LinkedIn
+- [x] Consistent header style between dashboard and board pages
 
 ## Quick Start
 
@@ -81,6 +102,7 @@ src/
       boards/             # Board CRUD API
   components/
     board/                # Board-specific components
+      BoardHeader         # Navigation bar (dashboard link, share, user, sign out)
       CollaborativeBoard  # Main whiteboard (tldraw + Yjs sync)
       LiveCursors         # Multiplayer cursor overlay (Yjs awareness)
       PresenceAvatars     # Who's online indicator (Yjs awareness)
