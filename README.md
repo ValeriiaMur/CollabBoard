@@ -1,6 +1,9 @@
 # CollabBoard
 
 Real-time collaborative whiteboard built with Next.js, tldraw, Yjs, and PartyKit.
+*URL: https://collab--collab-487622.us-central1.hosted.app/*
+
+<img width="1352" height="776" alt="Screenshot 2026-02-17 at 10 08 52 AM" src="https://github.com/user-attachments/assets/f5f92197-7588-44f4-a3eb-5d82cb50476f" />
 
 ## Tech Stack
 
