@@ -6,12 +6,12 @@ export function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="w-full max-w-md px-6 text-center">
-        {/* Ice Ice Baby gif */}
-        <div className="mb-4">
+        {/* Hero gif */}
+        <div className="mb-6">
           <img
-            src="https://media.tenor.com/3Meo4yhrnd4AAAAM/vanilla-ice-ice-ice-baby.gif"
-            alt="Ice Ice Baby"
-            className="mx-auto h-28 rounded-xl"
+            src="https://cdn.dribbble.com/userupload/19580535/file/original-246fa0b6a302830070007a9d74a14fe9.gif"
+            alt="Collaboration"
+            className="mx-auto h-40 w-40 rounded-full object-cover shadow-lg ring-4 ring-white"
           />
         </div>
 
