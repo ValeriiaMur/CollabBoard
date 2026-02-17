@@ -48,3 +48,6 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# firebase
+firebase-debug.log
