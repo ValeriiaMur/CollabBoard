@@ -28,7 +28,7 @@ export function InputArea({ prompt, setPrompt, onSubmit, onClose, disabled, load
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Ask AI to brainstorm, organize, summarize, connect ideas..."
+        placeholder='Try: "Create a SWOT analysis" or "Add 5 sticky notes about marketing ideas"'
         rows={2}
         disabled={disabled}
         className="flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-violet-300 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-200 disabled:opacity-50"

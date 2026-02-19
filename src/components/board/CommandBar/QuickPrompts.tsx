@@ -1,16 +1,19 @@
 import type { QuickPromptsProps } from "./types";
 
 const QUICK_PROMPTS = [
-  { label: "Brainstorm", prompt: "Brainstorm 8 creative ideas about" },
-  { label: "Organize", prompt: "Look at the existing items on this board and organize them into logical groups" },
-  { label: "Summarize", prompt: "Summarize everything on this board into a single overview" },
-  { label: "Connect", prompt: "Find relationships between items on this board and draw arrows connecting related ideas" },
-  { label: "Critique", prompt: "Review the ideas on this board and add notes about what's strong and what needs work" },
+  // Templates (supported by the agent's system prompt)
+  { label: "SWOT", prompt: "Create a SWOT analysis with 4 frames and starter stickies for each quadrant" },
+  { label: "Kanban", prompt: "Create a Kanban board with 4 columns: To Do, In Progress, Review, Done" },
+  { label: "Retro", prompt: "Create a retrospective board with 3 frames: What Went Well, What Didn't, Action Items" },
+  { label: "Pros/Cons", prompt: "Create a Pros and Cons board with green stickies for pros and red for cons" },
+  // Action-based commands
+  { label: "Add stickies", prompt: "Create 6 sticky notes with ideas about" },
+  { label: "Add shapes", prompt: "Create a rectangle and 4 sticky notes inside it labeled" },
 ] as const;
 
 export function QuickPrompts({ onSelect, inputRef }: QuickPromptsProps) {
   return (
-    <div className="flex gap-1.5 border-b border-gray-100 px-3 py-2">
+    <div className="flex flex-wrap gap-1.5 border-b border-gray-100 px-3 py-2">
       {QUICK_PROMPTS.map((qp) => (
         <button
           key={qp.label}
