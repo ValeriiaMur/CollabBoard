@@ -61,6 +61,8 @@ export async function POST(req: NextRequest) {
 
   // ─── Run AI agent ──────────────────────────────────────
   try {
+    const startTime = Date.now();
+
     const result = await runBoardAgent({
       prompt,
       boardState,
@@ -68,12 +70,15 @@ export async function POST(req: NextRequest) {
       userId: session.user.id,
     });
 
+    const durationMs = Date.now() - startTime;
+
     if (result.error) {
       return NextResponse.json(
         {
           error: result.error,
           actions: [],
           reasoning: null,
+          durationMs,
         },
         { status: 500 }
       );
@@ -83,6 +88,7 @@ export async function POST(req: NextRequest) {
       actions: result.actions,
       reasoning: result.reasoning,
       actionCount: result.actions.length,
+      durationMs,
     });
   } catch (error) {
     console.error("[/api/ai/command] Unexpected error:", error);

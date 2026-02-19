@@ -28,6 +28,7 @@ export function CommandBar({ editor, boardId }: CommandBarProps) {
   const [actionCount, setActionCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
+  const [durationMs, setDurationMs] = useState<number | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { setLocalState } = useAwarenessContext();
@@ -79,6 +80,7 @@ export function CommandBar({ editor, boardId }: CommandBarProps) {
       setReasoning(null);
       setActionCount(0);
       setProgress({ completed: 0, total: 0 });
+      setDurationMs(null);
       broadcastAiStatus("thinking", finalPrompt.trim().slice(0, 60));
 
       try {
@@ -104,6 +106,7 @@ export function CommandBar({ editor, boardId }: CommandBarProps) {
 
         setReasoning(data.reasoning || null);
         setActionCount(data.actionCount || 0);
+        setDurationMs(data.durationMs ?? null);
 
         // Execute actions on the board
         if (data.actions && data.actions.length > 0) {
@@ -219,7 +222,12 @@ export function CommandBar({ editor, boardId }: CommandBarProps) {
                         d="M4.5 12.75l6 6 9-13.5"
                       />
                     </svg>
-                    Done! {actionCount} items added.
+                    Done! {actionCount} items added
+                    {durationMs != null && (
+                      <span className="ml-1 opacity-70">
+                        ({(durationMs / 1000).toFixed(1)}s)
+                      </span>
+                    )}
                   </>
                 )}
                 {status === "error" && (

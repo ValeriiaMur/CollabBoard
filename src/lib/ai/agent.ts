@@ -120,6 +120,7 @@ export async function runBoardAgent({
     const llm = new ChatOpenAI({
       modelName: MODEL_NAME,
       temperature: 0.7,
+      maxTokens: 2048,
       openAIApiKey: process.env.OPENAI_API_KEY,
       modelKwargs: {
         response_format: { type: "json_object" },
