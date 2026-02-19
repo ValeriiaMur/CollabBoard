@@ -4,9 +4,11 @@
 
 CollabBoard's AI agent was built using **LangChain JS** (orchestration), **OpenAI GPT-4o-mini** (LLM), **Zod** (schema validation), and **Langfuse** (observability/cost tracking). The workflow follows a structured-output pattern: user prompts and serialized board state are sent to GPT-4o-mini in JSON mode, which returns an array of typed board actions. These actions are validated against a Zod discriminated union of 13 action schemas, then executed client-side against the tldraw editor API. Langfuse traces every LLM call with session/user metadata, enabling latency monitoring and cost attribution per board.
 
+Multiple AI coding tools were used throughout development: **Claude Code** for scaffolding, refactoring, and test generation; **GitHub Copilot** for inline code completion and autosuggestions; and **ChatGPT** for code reviews, requirements analysis, brainstorming architectural approaches, and comparing implementation strategies (e.g., Yjs vs Liveblocks, PartyKit vs Cloudflare Durable Objects). Using multiple tools together allowed us to cross-check outputs, catch blind spots, and iterate faster — each tool had different strengths depending on the task.
+
 ## MCP Usage
 
-No external MCP servers were used at runtime. During development, Claude Code with its built-in tools (file read/write, bash, grep, glob) served as the primary AI coding assistant for scaffolding the agent architecture, writing tests, and debugging integration issues. The Langfuse integration acts as the observability layer that an MCP-based tracing server would typically provide.
+No external MCP servers were used at runtime. During development, Claude Code with its built-in tools (file read/write, bash, grep, glob) was used for agentic coding tasks — scaffolding the agent architecture, writing tests, and debugging integration issues. ChatGPT was used conversationally for requirements review, brainstorming feature approaches, and comparing technology trade-offs before implementation. The Langfuse integration acts as the observability layer that an MCP-based tracing server would typically provide.
 
 ## Effective Prompts
 
@@ -18,7 +20,7 @@ No external MCP servers were used at runtime. During development, Claude Code wi
 
 ## Code Analysis
 
-Approximately **75% AI-generated, 25% hand-written**. AI generated the initial scaffolding for the agent (`agent.ts`, `tools.ts`, `executeActions.ts`), all Zod schemas, test suites, and the system prompt. Hand-written work focused on the type normalization map, Langfuse integration tuning, Yjs↔tldraw sync logic in `useYjsStore.ts`, the PartyKit server, and production hardening (error boundaries, timeout handling, cleanup refs).
+Approximately **75% AI-generated, 25% hand-written** (across Claude Code, Copilot, and ChatGPT combined). Claude Code generated the initial scaffolding for the agent (`agent.ts`, `tools.ts`, `executeActions.ts`), all Zod schemas, and test suites. Copilot assisted with inline completions during implementation. ChatGPT was used for reviewing requirements against the spec, brainstorming system prompt strategies, and comparing architectural options. Hand-written work focused on the type normalization map, Langfuse integration tuning, Yjs↔tldraw sync logic in `useYjsStore.ts`, the PartyKit server, and production hardening (error boundaries, timeout handling, cleanup refs).
 
 ## Strengths & Limitations
 

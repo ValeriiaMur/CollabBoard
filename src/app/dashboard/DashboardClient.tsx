@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Confetti } from "@/components/Confetti";
 
+const CONFETTI_SESSION_KEY = "collabboard_confetti_shown";
+
 interface BoardSummary {
   id: string;
   name: string;
@@ -26,18 +28,19 @@ export function DashboardClient({
   const [boards, setBoards] = useState(initialBoards);
   const [isCreating, setIsCreating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Fire confetti once per login session
   useEffect(() => {
-    const key = "collabboard_confetti_shown";
-    if (!sessionStorage.getItem(key)) {
+    if (!sessionStorage.getItem(CONFETTI_SESSION_KEY)) {
       setShowConfetti(true);
-      sessionStorage.setItem(key, "1");
+      sessionStorage.setItem(CONFETTI_SESSION_KEY, "1");
     }
   }, []);
 
   async function createBoard() {
     setIsCreating(true);
+    setError(null);
     try {
       const res = await fetch("/api/boards", {
         method: "POST",
@@ -48,23 +51,36 @@ export function DashboardClient({
       const board = await res.json();
       router.push(`/board/${board.id}`);
     } catch (err) {
-      console.error(err);
+      const message = err instanceof Error ? err.message : "Failed to create board";
+      setError(message);
       setIsCreating(false);
     }
   }
 
   async function deleteBoard(id: string) {
     if (!confirm("Delete this board? This cannot be undone.")) return;
+    const prevBoards = boards;
+    setError(null);
+    setBoards((prev) => prev.filter((b) => b.id !== id)); // optimistic
     try {
-      await fetch(`/api/boards/${id}`, { method: "DELETE" });
-      setBoards((prev) => prev.filter((b) => b.id !== id));
+      const res = await fetch(`/api/boards/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete board");
     } catch (err) {
-      console.error(err);
+      setBoards(prevBoards); // rollback on failure
+      const message = err instanceof Error ? err.message : "Failed to delete board";
+      setError(message);
     }
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Error banner */}
+      {error && (
+        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700 shadow-md">
+          {error}
+          <button onClick={() => setError(null)} className="ml-3 font-medium hover:text-red-900">&times;</button>
+        </div>
+      )}
       {/* Confetti on first login */}
       {showConfetti && <Confetti />}
 

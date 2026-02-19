@@ -9,6 +9,9 @@ import {
 } from "tldraw";
 import YPartyKitProvider from "y-partykit/provider";
 import * as Y from "yjs";
+import { createLogger } from "./logger";
+
+const log = createLogger("useYjsStore");
 
 /**
  * Custom hook that syncs a tldraw store with a PartyKit room via Yjs.
@@ -121,7 +124,7 @@ export function useYjsStore({
     }
 
     function handleSync(synced: boolean) {
-      console.log("[useYjsStore] sync event:", synced);
+      log.debug("sync event:", synced);
       if (synced) {
         loadInitialState();
         setStoreWithStatus({
@@ -134,7 +137,7 @@ export function useYjsStore({
 
     // If provider already synced (reconnect case), load immediately
     if (provider.synced) {
-      console.log("[useYjsStore] provider already synced");
+      log.debug("provider already synced");
       loadInitialState();
       setStoreWithStatus({
         status: "synced-remote",
@@ -147,7 +150,7 @@ export function useYjsStore({
 
     // Track WebSocket connection status
     function handleStatus({ status }: { status: string }) {
-      console.log("[useYjsStore] connection status:", status);
+      log.debug("connection status:", status);
       const connectionStatus: "online" | "offline" =
         status === "connected" ? "online" : "offline";
       setStoreWithStatus((prev) =>
@@ -162,8 +165,8 @@ export function useYjsStore({
     const timeout = setTimeout(() => {
       setStoreWithStatus((prev) => {
         if (prev.status === "loading") {
-          console.error(
-            "[useYjsStore] Connection timeout. Is PartyKit running on",
+          log.error(
+            "Connection timeout. Is PartyKit running on",
             hostUrl,
             "? Run: npx partykit dev"
           );

@@ -15,8 +15,7 @@ import {
   type TLShapeId,
 } from "tldraw";
 import type { BoardAction } from "./tools";
-
-const ANIMATION_DELAY = 150; // ms between actions for visual effect
+import { LAYOUT } from "./constants";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -92,8 +91,8 @@ function executeSingleAction(editor: Editor, action: BoardAction): void {
         x: action.position.x,
         y: action.position.y,
         props: {
-          w: action.width || 200,
-          h: action.height || 200,
+          w: action.width || LAYOUT.DEFAULT_SHAPE_SIZE,
+          h: action.height || LAYOUT.DEFAULT_SHAPE_SIZE,
           geo: geoMap[action.shapeType] || "rectangle",
           color: action.color || "black",
           text: action.label || "",
@@ -130,8 +129,8 @@ function executeSingleAction(editor: Editor, action: BoardAction): void {
         x: action.position.x,
         y: action.position.y,
         props: {
-          w: action.width || 600,
-          h: action.height || 400,
+          w: action.width || LAYOUT.DEFAULT_FRAME_WIDTH,
+          h: action.height || LAYOUT.DEFAULT_FRAME_HEIGHT,
           name: action.label || "",
         },
       });
@@ -206,13 +205,10 @@ function executeSingleAction(editor: Editor, action: BoardAction): void {
           editor.updateShape({
             id: action.shapeId as TLShapeId,
             type: shape.type,
-            props: {
-              ...(shape.type === "frame"
+            props:
+              shape.type === "frame" || shape.type === "geo"
                 ? { w: action.width, h: action.height }
-                : shape.type === "geo"
-                ? { w: action.width, h: action.height }
-                : {}),
-            },
+                : {},
           });
         }
       } catch (e) {
@@ -267,20 +263,22 @@ function executeSingleAction(editor: Editor, action: BoardAction): void {
           x: group.framePosition.x,
           y: group.framePosition.y,
           props: {
-            w: group.frameWidth || 500,
-            h: group.frameHeight || 400,
+            w: group.frameWidth || LAYOUT.DEFAULT_GROUP_FRAME_WIDTH,
+            h: group.frameHeight || LAYOUT.DEFAULT_GROUP_FRAME_HEIGHT,
             name: group.label,
           },
         });
 
         // Move items into the frame area
         // (We offset them inside the frame bounds)
-        let offsetX = 20;
-        let offsetY = 50; // below frame title
-        const colWidth = 230;
-        const rowHeight = 230;
+        let offsetX = LAYOUT.FRAME_PADDING_X;
+        let offsetY = LAYOUT.FRAME_HEADER_HEIGHT;
+        const colWidth = LAYOUT.STICKY_SPACING;
+        const rowHeight = LAYOUT.STICKY_SPACING;
         let col = 0;
-        const maxCols = Math.floor((group.frameWidth || 500) / colWidth);
+        const maxCols = Math.floor(
+          (group.frameWidth || LAYOUT.DEFAULT_GROUP_FRAME_WIDTH) / colWidth
+        );
 
         for (const shapeId of group.shapeIds) {
           try {
@@ -293,7 +291,7 @@ function executeSingleAction(editor: Editor, action: BoardAction): void {
             col++;
             if (col >= maxCols) {
               col = 0;
-              offsetX = 20;
+              offsetX = LAYOUT.FRAME_PADDING_X;
               offsetY += rowHeight;
             } else {
               offsetX += colWidth;
@@ -330,14 +328,14 @@ export async function executeActions(
             position: sticky.position,
             color: sticky.color || "yellow",
           });
-          await sleep(ANIMATION_DELAY);
+          await sleep(LAYOUT.ANIMATION_DELAY);
           onProgress?.(++completed, actions.length);
         }
       } else {
         executeSingleAction(editor, action);
         completed++;
         onProgress?.(completed, actions.length);
-        await sleep(ANIMATION_DELAY);
+        await sleep(LAYOUT.ANIMATION_DELAY);
       }
     } catch (error) {
       console.error("[executeActions] Failed to execute action:", action.type, error);
