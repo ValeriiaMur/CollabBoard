@@ -53,7 +53,7 @@ export function useYjsStore({
 
     /* ─── Yjs → tldraw store ─────────────────────────────── */
     function handleYjsChange(
-      events: Y.YMapEvent<TLRecord>[],
+      events: Y.YEvent<Y.Map<TLRecord>>[],
       txn: Y.Transaction
     ) {
       if (isSyncingFromStore) return;
@@ -83,7 +83,7 @@ export function useYjsStore({
       isSyncingFromYjs = false;
     }
 
-    yStore.observeDeep(handleYjsChange as any);
+    yStore.observeDeep(handleYjsChange);
 
     /* ─── tldraw store → Yjs ─────────────────────────────── */
     const unsubStore = store.listen(
@@ -180,7 +180,7 @@ export function useYjsStore({
     return () => {
       clearTimeout(timeout);
       unsubStore();
-      yStore.unobserveDeep(handleYjsChange as any);
+      yStore.unobserveDeep(handleYjsChange);
       provider.off("sync", handleSync);
       provider.off("status", handleStatus);
     };

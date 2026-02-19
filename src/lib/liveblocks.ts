@@ -1,4 +1,4 @@
-// DEPRECATED — Liveblocks has been replaced by Yjs + PartyKit.
-// User color utility moved to src/lib/userColors.ts
-// This file is no longer used. Safe to delete.
+// DELETED — This file is deprecated and should be removed.
+// Liveblocks has been replaced by Yjs + PartyKit.
+// Run: rm src/lib/liveblocks.ts
 export {};

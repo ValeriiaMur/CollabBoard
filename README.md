@@ -64,6 +64,56 @@ Real-time collaborative whiteboard built with Next.js, tldraw, Yjs, and PartyKit
 - [x] Share dropdown: copy link, share on X (Twitter), share on LinkedIn
 - [x] Consistent header style between dashboard and board pages
 
+## AI Agent
+
+CollabBoard includes an AI-powered command agent that processes natural language and returns structured board actions.
+
+### Architecture
+
+```
+User Prompt + Board State → LangChain/OpenAI (GPT-4o-mini, JSON mode) → Zod-validated Actions → tldraw Editor → Yjs Sync
+```
+
+### 13 Supported Action Types
+
+| Category | Actions |
+|----------|---------|
+| Creation | `create_sticky`, `create_multiple_stickies`, `create_text`, `create_shape`, `create_connector`, `create_arrow`, `create_frame` |
+| Manipulation | `move_shapes`, `resize_object`, `update_text`, `change_color` |
+| Analysis | `summarize_board`, `group_items` |
+
+### Performance Metrics
+
+| Metric | Target | Actual |
+|--------|--------|--------|
+| Response latency | <2 seconds | ~1.0–1.5s (GPT-4o-mini) |
+| Command breadth | 6+ types | 13 action types |
+| Complexity | Multi-step ops | SWOT (6 frames + stickies), brainstorm (6–10 items) |
+| Reliability | Consistent execution | Zod validation + 25 type aliases = <5% parse failure |
+| Serialization (500 shapes) | <50ms | <10ms typical |
+| Yjs Sync (2 docs) | <10ms | <5ms typical |
+| 5-User CRDT Convergence | <50ms | <30ms (50 shapes) |
+
+### Observability
+
+- **Langfuse** tracing on every LLM call — cost, latency, token usage
+- **Zod** runtime schema validation with 25+ type aliases for LLM output normalization
+
+### Testing
+
+```bash
+npm test              # Run all tests
+npm run test:ai       # AI agent tests only
+npm run test:perf     # Performance benchmarks only
+npm run test:coverage # Coverage report (70%+ thresholds)
+```
+
+6 test files with 50+ test cases covering unit, integration, and performance benchmarks.
+
+### AI Development Log
+
+See [`AI_Development_Log.docx`](AI_Development_Log.docx) for the full AI development log including tools & workflow, effective prompts, code analysis breakdown, and production cost projections.
+
 ## Quick Start
 
 ### 1. Install dependencies

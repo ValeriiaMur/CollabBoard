@@ -12,6 +12,8 @@ export interface AwarenessUser {
   color: string;
   image: string;
   cursor: { x: number; y: number } | null;
+  aiStatus?: "idle" | "thinking" | "executing" | null;
+  aiPrompt?: string | null;
 }
 
 /**

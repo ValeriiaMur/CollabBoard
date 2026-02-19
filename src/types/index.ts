@@ -17,7 +17,7 @@ declare module "next-auth/jwt" {
   }
 }
 
-// Liveblocks presence types
+// Presence types (used by Yjs awareness)
 export type Presence = {
   cursor: { x: number; y: number } | null;
   name: string;
