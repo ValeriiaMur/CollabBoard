@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Tldraw, type Editor } from "tldraw";
 import "tldraw/tldraw.css";
 import { useYjsStore } from "@/lib/useYjsStore";
@@ -9,6 +9,8 @@ import { AwarenessProvider } from "@/lib/AwarenessContext";
 import { LiveCursors } from "./LiveCursors";
 import { PresenceAvatars } from "./PresenceAvatars";
 import { BoardHeader } from "./BoardHeader";
+import { CommandBar } from "./CommandBar";
+import { AiActivityIndicator } from "./AiActivityIndicator";
 
 interface CollaborativeBoardProps {
   boardId: string;
@@ -30,6 +32,7 @@ interface CollaborativeBoardProps {
  * - Real-time sync (Yjs + PartyKit WebSocket)
  * - Multiplayer cursors with name labels (Yjs awareness → LiveCursors)
  * - Presence awareness (Yjs awareness → PresenceAvatars)
+ * - AI Board Agent (CommandBar → /api/ai/command → tldraw editor)
  */
 export function CollaborativeBoard({
   boardId,
@@ -46,6 +49,9 @@ export function CollaborativeBoard({
 
   const { others, self, setLocalState, setCursor } = useAwareness(provider);
 
+  // Store editor reference for CommandBar to use
+  const editorRef = useRef<Editor | null>(null);
+
   // Initialize awareness with user info
   useEffect(() => {
     setLocalState({
@@ -59,6 +65,9 @@ export function CollaborativeBoard({
   // Track cursor position on the tldraw canvas and broadcast via awareness
   const handleMount = useCallback(
     (editor: Editor) => {
+      // Store the editor reference for AI command execution
+      editorRef.current = editor;
+
       editor.on("event", (event) => {
         if (event.name === "pointer_move") {
           const pagePoint = editor.inputs.currentPagePoint;
@@ -116,7 +125,7 @@ export function CollaborativeBoard({
   }
 
   return (
-    <AwarenessProvider value={{ others, self, setCursor }}>
+    <AwarenessProvider value={{ others, self, setCursor, setLocalState }}>
       <div className="flex h-screen w-screen flex-col">
         {/* Board header with nav, share, sign out */}
         <BoardHeader
@@ -140,6 +149,12 @@ export function CollaborativeBoard({
               InFrontOfTheCanvas: LiveCursors,
             }}
           />
+
+          {/* AI activity broadcast — sparkle indicator for all users */}
+          <AiActivityIndicator />
+
+          {/* AI Agent Command Bar */}
+          <CommandBar editor={editorRef.current} boardId={boardId} />
         </div>
       </div>
     </AwarenessProvider>

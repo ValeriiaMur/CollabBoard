@@ -7,3 +7,147 @@
   position: absolute !important;
   inset: 0;
 }
+
+/* Squared grid background on the tldraw canvas */
+.tl-background {
+  background-image:
+    linear-gradient(to right, #e5e5e5 1px, transparent 1px),
+    linear-gradient(to bottom, #e5e5e5 1px, transparent 1px) !important;
+  background-size: 24px 24px !important;
+  background-color: #fafafa !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AI Activity Indicator — sparkle animations
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Pill entrance */
+.ai-activity-pill {
+  animation: pill-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes pill-enter {
+  0% { opacity: 0; transform: translateY(-12px) scale(0.9); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Pulsing glow behind the pill */
+.ai-glow {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.12));
+  animation: glow-pulse 2s ease-in-out infinite;
+  filter: blur(1px);
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+/* Orbiting color sphere */
+.ai-orb {
+  animation: orb-breathe 1.8s ease-in-out infinite;
+}
+
+@keyframes orb-breathe {
+  0%, 100% { transform: scale(0.85); opacity: 0.7; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+/* Ring around the orb */
+.ai-orb-ring {
+  animation: ring-spin 4s linear infinite;
+}
+
+@keyframes ring-spin {
+  0% { transform: rotate(0deg); border-color: rgba(139, 92, 246, 0.4); }
+  50% { border-color: rgba(236, 72, 153, 0.4); }
+  100% { transform: rotate(360deg); border-color: rgba(139, 92, 246, 0.4); }
+}
+
+/* ── Sparkle particles ─────────────────────────────────────── */
+.sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 0 4px 1px rgba(139, 92, 246, 0.6), 0 0 8px 2px rgba(139, 92, 246, 0.3);
+  pointer-events: none;
+}
+
+.sparkle-1 {
+  animation: sparkle-float 2.2s ease-in-out infinite;
+  animation-delay: 0s;
+}
+.sparkle-2 {
+  animation: sparkle-float 2.2s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+.sparkle-3 {
+  animation: sparkle-float 2.2s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+.sparkle-4 {
+  width: 3px; height: 3px;
+  animation: sparkle-orbit 3s linear infinite;
+  animation-delay: 0.2s;
+}
+.sparkle-5 {
+  width: 3px; height: 3px;
+  animation: sparkle-orbit 3s linear infinite reverse;
+  animation-delay: 1s;
+}
+.sparkle-6 {
+  width: 2px; height: 2px;
+  animation: sparkle-orbit 2.4s linear infinite;
+  animation-delay: 1.8s;
+  box-shadow: 0 0 4px 1px rgba(236, 72, 153, 0.6);
+}
+
+@keyframes sparkle-float {
+  0% { transform: translate(0, 0) scale(0); opacity: 0; }
+  20% { transform: translate(-8px, -10px) scale(1); opacity: 1; }
+  40% { transform: translate(-4px, -18px) scale(0.6); opacity: 0.8; }
+  60% { transform: translate(6px, -14px) scale(1); opacity: 1; }
+  80% { transform: translate(10px, -6px) scale(0.4); opacity: 0.6; }
+  100% { transform: translate(0, 0) scale(0); opacity: 0; }
+}
+
+@keyframes sparkle-orbit {
+  0% { transform: rotate(0deg) translateX(14px) scale(0.8); opacity: 0.7; }
+  25% { transform: rotate(90deg) translateX(14px) scale(1); opacity: 1; }
+  50% { transform: rotate(180deg) translateX(14px) scale(0.6); opacity: 0.5; }
+  75% { transform: rotate(270deg) translateX(14px) scale(1); opacity: 0.9; }
+  100% { transform: rotate(360deg) translateX(14px) scale(0.8); opacity: 0.7; }
+}
+
+/* ── Trailing dots behind the pill ─────────────────────────── */
+.trail-dot {
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.5);
+  pointer-events: none;
+}
+
+.trail-dot-1 {
+  animation: trail-fade 1.5s ease-out infinite;
+  animation-delay: 0s;
+}
+.trail-dot-2 {
+  animation: trail-fade 1.5s ease-out infinite;
+  animation-delay: 0.3s;
+}
+.trail-dot-3 {
+  animation: trail-fade 1.5s ease-out infinite;
+  animation-delay: 0.6s;
+}
+
+@keyframes trail-fade {
+  0% { transform: translateX(0) translateY(-50%) scale(1); opacity: 0.7; }
+  50% { transform: translateX(14px) translateY(-50%) scale(0.6); opacity: 0.3; }
+  100% { transform: translateX(24px) translateY(-50%) scale(0); opacity: 0; }
+}

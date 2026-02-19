@@ -9,20 +9,32 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "party:deploy": "npx partykit deploy"
+    "party:deploy": "npx partykit deploy",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:ai": "vitest run --testPathPattern=ai",
+    "test:perf": "vitest run --testPathPattern=perf",
+    "test:langfuse": "vitest run --testPathPattern=langfuse"
   },
   "dependencies": {
     "@auth/firebase-adapter": "^2.11.1",
+    "@langchain/core": "^0.3.58",
+    "@langchain/openai": "^0.4.9",
     "firebase": "^11.2.0",
     "firebase-admin": "^13.0.0",
-    "next": "14.2.21",
+    "langchain": "^0.3.37",
+    "langfuse-langchain": "^3.38.0",
+    "next": "14.2.35",
     "next-auth": "^4.24.11",
     "partysocket": "^1.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tldraw": "^2.4.0",
     "y-partykit": "^0.0.25",
-    "yjs": "^13.6.0"
+    "yjs": "^13.6.0",
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",
@@ -31,10 +43,13 @@
     "autoprefixer": "^10.4.20",
     "concurrently": "^9.1.0",
     "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.21",
+    "eslint-config-next": "14.2.35",
     "partykit": "^0.0.111",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0",
+    "@vitest/coverage-v8": "^2.1.0",
+    "@vitest/ui": "^2.1.0"
   }
 }
