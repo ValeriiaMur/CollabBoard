@@ -20,6 +20,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { CallbackHandler } from "langfuse-langchain";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { TOOL_DESCRIPTIONS, BoardActionSchema } from "./tools";
+import { TYPE_ALIASES } from "./constants";
 import { z } from "zod";
 
 // ─── Model config (reads from env) ─────────────────────────
@@ -82,7 +83,6 @@ function createLangfuseHandler(boardId: string, userId?: string) {
     !process.env.LANGFUSE_PUBLIC_KEY ||
     !process.env.LANGFUSE_SECRET_KEY
   ) {
-    console.log("[AI Agent] Langfuse not configured — tracing disabled");
     return null;
   }
 
@@ -120,6 +120,7 @@ export async function runBoardAgent({
     const llm = new ChatOpenAI({
       modelName: MODEL_NAME,
       temperature: 0.7,
+      maxTokens: 2048,
       openAIApiKey: process.env.OPENAI_API_KEY,
       modelKwargs: {
         response_format: { type: "json_object" },
@@ -153,11 +154,7 @@ export async function runBoardAgent({
     // Call LLM with optional Langfuse tracing
     const callbacks = langfuseHandler ? [langfuseHandler] : [];
 
-    console.log("[AI Agent] Calling LLM with model:", MODEL_NAME);
-
     const response = await llm.invoke(messages, { callbacks });
-
-    console.log("[AI Agent] LLM response received");
 
     // Parse response
     const content =
@@ -165,58 +162,13 @@ export async function runBoardAgent({
         ? response.content
         : JSON.stringify(response.content);
 
-    console.log("[AI Agent] Raw content:", content.substring(0, 200) + "...");
-
     const parsed = JSON.parse(content);
 
     // ── Normalize action types ─────────────────────────────
     // GPT-4o-mini sometimes invents type names; map them to our exact schema values.
     if (Array.isArray(parsed.actions)) {
-      const TYPE_ALIASES: Record<string, string> = {
-        // camelCase variants
-        createSticky: "create_sticky",
-        createStickyNote: "create_sticky",
-        createNote: "create_sticky",
-        createMultipleStickies: "create_multiple_stickies",
-        createText: "create_text",
-        createShape: "create_shape",
-        createConnector: "create_connector",
-        createArrow: "create_arrow",
-        createFrame: "create_frame",
-        moveShapes: "move_shapes",
-        moveObject: "move_shapes",
-        resizeObject: "resize_object",
-        updateText: "update_text",
-        changeColor: "change_color",
-        summarizeBoard: "summarize_board",
-        groupItems: "group_items",
-        // short / alternate names
-        sticky: "create_sticky",
-        note: "create_sticky",
-        add_sticky: "create_sticky",
-        add_note: "create_sticky",
-        text: "create_text",
-        add_text: "create_text",
-        shape: "create_shape",
-        add_shape: "create_shape",
-        connector: "create_connector",
-        arrow: "create_arrow",
-        frame: "create_frame",
-        add_frame: "create_frame",
-        move: "move_shapes",
-        resize: "resize_object",
-        recolor: "change_color",
-        color: "change_color",
-        summarize: "summarize_board",
-        group: "group_items",
-        // create_ prefix without exact match
-        create_note: "create_sticky",
-        create_sticky_note: "create_sticky",
-      };
-
       for (const action of parsed.actions) {
         if (action.type && TYPE_ALIASES[action.type]) {
-          console.log(`[AI Agent] Normalizing type "${action.type}" → "${TYPE_ALIASES[action.type]}"`);
           action.type = TYPE_ALIASES[action.type];
         }
       }

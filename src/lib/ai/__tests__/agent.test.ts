@@ -9,48 +9,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { z } from "zod";
 import { BoardActionSchema } from "../tools";
-
-// ─── Type Normalization (extracted logic) ──────────────────────
-
-// We test the normalization map directly since it's the most critical piece
-const TYPE_ALIASES: Record<string, string> = {
-  createSticky: "create_sticky",
-  createStickyNote: "create_sticky",
-  createNote: "create_sticky",
-  createMultipleStickies: "create_multiple_stickies",
-  createText: "create_text",
-  createShape: "create_shape",
-  createConnector: "create_connector",
-  createArrow: "create_arrow",
-  createFrame: "create_frame",
-  moveShapes: "move_shapes",
-  moveObject: "move_shapes",
-  resizeObject: "resize_object",
-  updateText: "update_text",
-  changeColor: "change_color",
-  summarizeBoard: "summarize_board",
-  groupItems: "group_items",
-  sticky: "create_sticky",
-  note: "create_sticky",
-  add_sticky: "create_sticky",
-  add_note: "create_sticky",
-  text: "create_text",
-  add_text: "create_text",
-  shape: "create_shape",
-  add_shape: "create_shape",
-  connector: "create_connector",
-  arrow: "create_arrow",
-  frame: "create_frame",
-  add_frame: "create_frame",
-  move: "move_shapes",
-  resize: "resize_object",
-  recolor: "change_color",
-  color: "change_color",
-  summarize: "summarize_board",
-  group: "group_items",
-  create_note: "create_sticky",
-  create_sticky_note: "create_sticky",
-};
+import { TYPE_ALIASES } from "../constants";
 
 function normalizeActions(actions: Array<{ type: string; [k: string]: unknown }>) {
   for (const action of actions) {
