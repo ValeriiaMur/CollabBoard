@@ -6,6 +6,8 @@ import "tldraw/tldraw.css";
 import { useYjsStore } from "@/lib/useYjsStore";
 import { useAwareness } from "@/lib/useAwareness";
 import { AwarenessProvider } from "@/lib/AwarenessContext";
+import { useSnapshotCapture } from "@/lib/hooks/useSnapshotCapture";
+import { useCollaboratorTracker } from "@/lib/hooks/useCollaboratorTracker";
 import { LiveCursors } from "./LiveCursors";
 import { PresenceAvatars } from "./PresenceAvatars";
 import { BoardHeader } from "./BoardHeader";
@@ -14,6 +16,7 @@ import { AiActivityIndicator } from "./AiActivityIndicator";
 
 interface CollaborativeBoardProps {
   boardId: string;
+  userId: string;
   userName: string;
   userColor: string;
   userImage: string;
@@ -36,6 +39,7 @@ interface CollaborativeBoardProps {
  */
 export function CollaborativeBoard({
   boardId,
+  userId,
   userName,
   userColor,
   userImage,
@@ -51,6 +55,12 @@ export function CollaborativeBoard({
 
   // Store editor reference for CommandBar to use
   const editorRef = useRef<Editor | null>(null);
+
+  // Board thumbnail capture (periodic + on exit)
+  const { captureAndSave } = useSnapshotCapture(editorRef, boardId);
+
+  // Collaborator tracking (debounced on edits)
+  useCollaboratorTracker(boardId, userId, userName, userImage, editorRef);
 
   // Initialize awareness with user info
   useEffect(() => {
@@ -81,11 +91,14 @@ export function CollaborativeBoard({
       const handleBlur = () => setCursor(null);
       window.addEventListener("blur", handleBlur);
 
+      // Capture initial snapshot after a short delay (let content load)
+      setTimeout(() => captureAndSave(), 3000);
+
       return () => {
         window.removeEventListener("blur", handleBlur);
       };
     },
-    [setCursor]
+    [setCursor, captureAndSave]
   );
 
   if (storeWithStatus.status === "loading") {

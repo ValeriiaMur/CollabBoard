@@ -27,6 +27,7 @@ const CollaborativeBoard = dynamic(
 
 interface BoardRoomProps {
   boardId: string;
+  userId: string;
   userName: string;
   userColor: string;
   userImage: string;
@@ -35,6 +36,7 @@ interface BoardRoomProps {
 
 export function BoardRoom({
   boardId,
+  userId,
   userName,
   userColor,
   userImage,
@@ -43,6 +45,7 @@ export function BoardRoom({
   return (
     <CollaborativeBoard
       boardId={boardId}
+      userId={userId}
       userName={userName}
       userColor={userColor}
       userImage={userImage}

@@ -7,10 +7,19 @@ import { Confetti } from "@/components/Confetti";
 
 const CONFETTI_SESSION_KEY = "collabboard_confetti_shown";
 
+interface BoardCollaborator {
+  userId: string;
+  userName: string;
+  userImage: string | null;
+  editedAt: string | null;
+}
+
 interface BoardSummary {
   id: string;
   name: string;
   updatedAt: string;
+  thumbnailDataUrl?: string | null;
+  collaborators?: BoardCollaborator[];
 }
 
 interface DashboardClientProps {
@@ -170,21 +179,33 @@ export function DashboardClient({
                   onClick={() => router.push(`/board/${board.id}`)}
                   className="block w-full text-left"
                 >
-                  <div className="mb-3 flex h-24 items-center justify-center rounded-lg bg-gradient-to-br from-brand-50 to-blue-50">
-                    <svg
-                      className="h-8 w-8 text-brand-300"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zm-10 9a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zm10-1a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1h-4a1 1 0 01-1-1v-5z"
+                  {/* Board thumbnail or gradient placeholder */}
+                  {board.thumbnailDataUrl ? (
+                    <div className="mb-3 overflow-hidden rounded-lg border border-gray-100 bg-white">
+                      <img
+                        src={board.thumbnailDataUrl}
+                        alt={`${board.name} preview`}
+                        className="h-32 w-full object-contain bg-gray-50"
                       />
-                    </svg>
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="mb-3 flex h-32 items-center justify-center rounded-lg bg-gradient-to-br from-brand-50 to-blue-50">
+                      <svg
+                        className="h-8 w-8 text-brand-300"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zm-10 9a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zm10-1a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1h-4a1 1 0 01-1-1v-5z"
+                        />
+                      </svg>
+                    </div>
+                  )}
+
                   <h3 className="font-medium text-gray-900">{board.name}</h3>
                   <p className="mt-1 text-xs text-gray-400">
                     Updated{" "}
@@ -195,6 +216,42 @@ export function DashboardClient({
                     })}
                   </p>
                 </button>
+
+                {/* Collaborator avatars */}
+                {board.collaborators && board.collaborators.length > 0 && (
+                  <div className="mt-3 flex items-center gap-1 border-t border-gray-100 pt-3">
+                    <div className="flex -space-x-1.5">
+                      {board.collaborators.slice(0, 4).map((collab) => (
+                        <div
+                          key={collab.userId}
+                          title={collab.userName}
+                        >
+                          {collab.userImage ? (
+                            <img
+                              src={collab.userImage}
+                              alt={collab.userName}
+                              className="h-6 w-6 rounded-full border-2 border-white"
+                            />
+                          ) : (
+                            <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-brand-100 text-[10px] font-medium text-brand-700">
+                              {collab.userName.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {board.collaborators.length > 4 && (
+                      <span className="ml-1 text-xs text-gray-400">
+                        +{board.collaborators.length - 4}
+                      </span>
+                    )}
+                    <span className="ml-auto text-[10px] text-gray-400">
+                      {board.collaborators.length === 1
+                        ? "1 editor"
+                        : `${board.collaborators.length} editors`}
+                    </span>
+                  </div>
+                )}
 
                 {/* Delete button */}
                 <button

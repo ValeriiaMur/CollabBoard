@@ -19,10 +19,28 @@ export default async function DashboardPage() {
 
   const boards = snapshot.docs.map((doc) => {
     const data = doc.data();
+
+    // Convert collaborators map to sorted array
+    const collaboratorsMap = data.collaborators || {};
+    const collaborators = Object.entries(collaboratorsMap)
+      .map(([uid, collab]: [string, any]) => ({
+        userId: uid,
+        userName: collab.userName as string,
+        userImage: (collab.userImage as string) || null,
+        editedAt: collab.editedAt?.toDate?.().toISOString() ?? null,
+      }))
+      .sort(
+        (a, b) =>
+          new Date(b.editedAt ?? 0).getTime() -
+          new Date(a.editedAt ?? 0).getTime()
+      );
+
     return {
       id: doc.id,
       name: data.name as string,
       updatedAt: data.updatedAt?.toDate?.().toISOString() ?? new Date().toISOString(),
+      thumbnailDataUrl: (data.thumbnailDataUrl as string) || null,
+      collaborators,
     };
   });
 

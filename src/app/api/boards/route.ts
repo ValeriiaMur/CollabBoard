@@ -49,12 +49,30 @@ export async function GET() {
 
   const boards = snapshot.docs.map((doc) => {
     const data = doc.data();
+
+    // Convert collaborators map to sorted array
+    const collaboratorsMap = data.collaborators || {};
+    const collaborators = Object.entries(collaboratorsMap)
+      .map(([uid, collab]: [string, any]) => ({
+        userId: uid,
+        userName: collab.userName,
+        userImage: collab.userImage || null,
+        editedAt: collab.editedAt?.toDate?.().toISOString() ?? null,
+      }))
+      .sort(
+        (a, b) =>
+          new Date(b.editedAt ?? 0).getTime() -
+          new Date(a.editedAt ?? 0).getTime()
+      );
+
     return {
       id: doc.id,
       name: data.name,
       ownerId: data.ownerId,
       createdAt: data.createdAt?.toDate?.().toISOString() ?? null,
       updatedAt: data.updatedAt?.toDate?.().toISOString() ?? null,
+      thumbnailDataUrl: data.thumbnailDataUrl || null,
+      collaborators,
     };
   });
 
