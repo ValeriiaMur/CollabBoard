@@ -20,7 +20,7 @@ No external MCP servers were used at runtime. During development, Claude Code wi
 
 ## Code Analysis
 
-Approximately **75% AI-generated, 25% hand-written** (across Claude Code, Copilot, and ChatGPT combined). Claude Code generated the initial scaffolding for the agent (`agent.ts`, `tools.ts`, `executeActions.ts`), all Zod schemas, and test suites. Copilot assisted with inline completions during implementation. ChatGPT was used for reviewing requirements against the spec, brainstorming system prompt strategies, and comparing architectural options. Hand-written work focused on the type normalization map, Langfuse integration tuning, Yjs↔tldraw sync logic in `useYjsStore.ts`, the PartyKit server, and production hardening (error boundaries, timeout handling, cleanup refs).
+Approximately **95% AI-generated, 5% hand-written** (across Claude Code, Copilot, and ChatGPT combined). Claude Code generated the initial scaffolding for the agent (`agent.ts`, `tools.ts`, `executeActions.ts`), all Zod schemas, and test suites. Copilot assisted with inline completions during implementation. ChatGPT was used for reviewing requirements against the spec, brainstorming system prompt strategies, and comparing architectural options. Hand-written work focused on the type normalization map, Langfuse integration tuning, Yjs↔tldraw sync logic in `useYjsStore.ts`, the PartyKit server, and production hardening (error boundaries, timeout handling, cleanup refs).
 
 ## Strengths & Limitations
 

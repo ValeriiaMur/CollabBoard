@@ -8,11 +8,13 @@ import { useAwareness } from "@/lib/useAwareness";
 import { AwarenessProvider } from "@/lib/AwarenessContext";
 import { useSnapshotCapture } from "@/lib/hooks/useSnapshotCapture";
 import { useCollaboratorTracker } from "@/lib/hooks/useCollaboratorTracker";
+import { useBotActionListener } from "@/lib/hooks/useBotActionListener";
 import { LiveCursors } from "./LiveCursors";
 import { PresenceAvatars } from "./PresenceAvatars";
 import { BoardHeader } from "./BoardHeader";
 import { CommandBar } from "./CommandBar";
 import { AiActivityIndicator } from "./AiActivityIndicator";
+import { AgentPanel } from "./AgentPanel";
 
 interface CollaborativeBoardProps {
   boardId: string;
@@ -61,6 +63,9 @@ export function CollaborativeBoard({
 
   // Collaborator tracking (debounced on edits)
   useCollaboratorTracker(boardId, userId, userName, userImage, editorRef);
+
+  // Listen for external bot actions from Firestore
+  useBotActionListener(editorRef.current, boardId);
 
   // Initialize awareness with user info
   useEffect(() => {
@@ -149,8 +154,8 @@ export function CollaborativeBoard({
 
         {/* Canvas area — fills remaining height */}
         <div className="relative flex-1">
-          {/* Presence: who's online — top-right of canvas */}
-          <div className="absolute right-4 top-2 z-50">
+          {/* Presence: who's online — top-center of canvas */}
+          <div className="absolute left-1/2 top-2 z-50 -translate-x-1/2">
             <PresenceAvatars />
           </div>
 
@@ -168,6 +173,9 @@ export function CollaborativeBoard({
 
           {/* AI Agent Command Bar */}
           <CommandBar editor={editorRef.current} boardId={boardId} />
+
+          {/* Multi-Agent Panel */}
+          <AgentPanel editor={editorRef.current} boardId={boardId} />
         </div>
       </div>
     </AwarenessProvider>
