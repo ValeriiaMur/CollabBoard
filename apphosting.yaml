@@ -56,5 +56,3 @@ env:
     value: https://us.cloud.langfuse.com
   - variable: ANTHROPIC_API_KEY
     secret: ANTHROPIC_API_KEY
-  - variable: PARTYKIT_HOST_URL
-    secret: PARTYKIT_HOST_URL
