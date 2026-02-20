@@ -13,6 +13,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
+import { FieldValue } from "firebase-admin/firestore";
 import { verifyApiKey } from "@/lib/agents/botAuth";
 import { BoardActionSchema } from "@/lib/ai/tools";
 import { z } from "zod";
@@ -71,12 +72,20 @@ export async function POST(req: NextRequest) {
       .where("active", "==", true)
       .get();
 
-    let authenticatedBot: { id: string; name: string } | null = null;
+    let authenticatedBot: {
+      id: string;
+      name: string;
+      rateLimit: number;
+    } | null = null;
 
     for (const doc of botsSnap.docs) {
       const data = doc.data();
       if (verifyApiKey(apiKey, data.apiKeyHash)) {
-        authenticatedBot = { id: doc.id, name: data.name };
+        authenticatedBot = {
+          id: doc.id,
+          name: data.name,
+          rateLimit: data.rateLimit || 30,
+        };
         break;
       }
     }
@@ -88,10 +97,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Write actions to the Yjs document via PartyKit
-    // For now, we use the simpler approach: write directly to Firestore
-    // as pending actions that get picked up by connected clients.
-    // This avoids needing a server-side PartyKit connection.
+    // 4. Enforce rate limit (sliding window: requests in last 60s)
+    //    Uses single-field filter to avoid needing a composite index.
+    const rateLimit = authenticatedBot.rateLimit || 30;
+
+    const recentSnap = await db
+      .collection("boards")
+      .doc(boardId)
+      .collection("pendingBotActions")
+      .where("botId", "==", authenticatedBot.id)
+      .limit(rateLimit + 1)
+      .get();
+
+    const oneMinuteAgo = Date.now() - 60_000;
+    const recentCount = recentSnap.docs.filter((d) => {
+      const ts = d.data().createdAt;
+      if (!ts) return false;
+      const millis = ts.toMillis ? ts.toMillis() : new Date(ts).getTime();
+      return millis >= oneMinuteAgo;
+    }).length;
+
+    if (recentCount >= rateLimit) {
+      return NextResponse.json(
+        {
+          error: `Rate limit exceeded: ${rateLimit} requests/minute. Try again shortly.`,
+          retryAfterSeconds: 60,
+        },
+        { status: 429 }
+      );
+    }
+
+    // 5. Write actions to Firestore as pending (picked up by connected clients)
     const pendingRef = db
       .collection("boards")
       .doc(boardId)
@@ -102,7 +138,7 @@ export async function POST(req: NextRequest) {
       botId: authenticatedBot.id,
       botName: authenticatedBot.name,
       actions: JSON.parse(JSON.stringify(actions)), // Serialize for Firestore
-      createdAt: new Date(),
+      createdAt: FieldValue.serverTimestamp(),
       status: "pending",
     });
 

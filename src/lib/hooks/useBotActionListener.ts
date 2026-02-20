@@ -12,8 +12,10 @@ import { useEffect, useRef, useCallback } from "react";
 import type { Editor } from "tldraw";
 import type { BoardAction } from "../ai/tools";
 
-/** Poll interval in ms */
+/** Base poll interval in ms */
 const POLL_INTERVAL = 3000;
+/** Max backoff interval after consecutive errors */
+const MAX_BACKOFF = 60_000;
 
 interface PendingAction {
   id: string;
@@ -26,6 +28,7 @@ export function useBotActionListener(
   boardId: string
 ) {
   const processingRef = useRef(false);
+  const consecutiveErrorsRef = useRef(0);
 
   const pollAndExecute = useCallback(async () => {
     if (!editor || processingRef.current) return;
@@ -35,9 +38,16 @@ export function useBotActionListener(
       const res = await fetch(
         `/api/agents/bot-action/poll?boardId=${encodeURIComponent(boardId)}`
       );
-      if (!res.ok) return;
+
+      if (!res.ok) {
+        consecutiveErrorsRef.current++;
+        return;
+      }
 
       const pending: PendingAction[] = await res.json();
+
+      // Reset backoff on successful poll (even if no items)
+      consecutiveErrorsRef.current = 0;
 
       for (const item of pending) {
         console.log(
@@ -61,17 +71,36 @@ export function useBotActionListener(
         });
       }
     } catch {
-      // Silently ignore poll errors
+      consecutiveErrorsRef.current++;
+      if (consecutiveErrorsRef.current <= 2) {
+        console.warn("[BotListener] Poll failed, will back off");
+      }
+      // Silently back off after initial warnings
     } finally {
       processingRef.current = false;
     }
   }, [editor, boardId]);
 
   useEffect(() => {
-    const interval = setInterval(pollAndExecute, POLL_INTERVAL);
-    // Also poll immediately on mount
-    pollAndExecute();
-    return () => clearInterval(interval);
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const scheduleNext = () => {
+      // Exponential backoff: 3s → 6s → 12s → 24s → 48s → 60s (cap)
+      const errors = consecutiveErrorsRef.current;
+      const delay = errors === 0
+        ? POLL_INTERVAL
+        : Math.min(POLL_INTERVAL * Math.pow(2, errors), MAX_BACKOFF);
+
+      timeoutId = setTimeout(async () => {
+        await pollAndExecute();
+        scheduleNext();
+      }, delay);
+    };
+
+    // Poll immediately on mount, then schedule
+    pollAndExecute().then(scheduleNext);
+
+    return () => clearTimeout(timeoutId);
   }, [pollAndExecute]);
 }
 

@@ -32,6 +32,12 @@ export async function POST(req: NextRequest) {
     if (!prompt || typeof prompt !== "string") {
       return NextResponse.json({ error: "Missing prompt" }, { status: 400 });
     }
+    if (prompt.length > 10_000) {
+      return NextResponse.json(
+        { error: "Prompt too long. Maximum 10,000 characters." },
+        { status: 400 }
+      );
+    }
     if (!Array.isArray(personalities) || personalities.length === 0) {
       return NextResponse.json(
         { error: "Select at least one agent personality" },
@@ -53,12 +59,10 @@ export async function POST(req: NextRequest) {
 
     // Check API key
     if (!process.env.ANTHROPIC_API_KEY) {
+      console.error("[Agents Start] ANTHROPIC_API_KEY not configured");
       return NextResponse.json(
-        {
-          error:
-            "ANTHROPIC_API_KEY not configured. Add it to your environment variables (or .env.local for local dev).",
-        },
-        { status: 500 }
+        { error: "AI agent service unavailable. Please contact the administrator." },
+        { status: 503 }
       );
     }
 

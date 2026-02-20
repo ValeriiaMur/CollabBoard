@@ -44,6 +44,14 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Guard against excessively long prompts (token exhaustion)
+    if (prompt.length > 10_000) {
+      return NextResponse.json(
+        { error: "Prompt too long. Maximum 10,000 characters." },
+        { status: 400 }
+      );
+    }
   } catch {
     return NextResponse.json(
       { error: "Invalid JSON body" },
@@ -53,9 +61,10 @@ export async function POST(req: NextRequest) {
 
   // ─── Check API key is configured ───────────────────────
   if (!process.env.OPENAI_API_KEY) {
+    console.error("[/api/ai/command] OPENAI_API_KEY not configured");
     return NextResponse.json(
-      { error: "OPENAI_API_KEY not configured. Set it in your environment variables (or .env.local for local dev)." },
-      { status: 500 }
+      { error: "AI service unavailable. Please contact the administrator." },
+      { status: 503 }
     );
   }
 
