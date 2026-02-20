@@ -38,3 +38,19 @@ env:
     secret: FIREBASE_PROJECT_ID
   - variable: NEXT_PUBLIC_PARTYKIT_HOST
     secret: NEXT_PUBLIC_PARTYKIT_HOST
+  - variable: OPENAI_API_KEY
+    secret: OPENAI_API_KEY
+  - variable: CHATGPT_MODEL
+    value: gpt-4o-mini
+  - variable: LANGCHAIN_API_KEY
+    secret: LANGCHAIN_API_KEY
+  - variable: LANGCHAIN_TRACING_V2
+    value: "true"
+  - variable: LANGCHAIN_PROJECT
+    value: langchain-tracing-test
+  - variable: LANGFUSE_SECRET_KEY
+    secret: LANGFUSE_SECRET_KEY
+  - variable: LANGFUSE_PUBLIC_KEY
+    secret: LANGFUSE_PUBLIC_KEY
+  - variable: LANGFUSE_HOST
+    value: https://us.cloud.langfuse.com

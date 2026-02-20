@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   // ─── Check API key is configured ───────────────────────
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
-      { error: "OPENAI_API_KEY not configured. Add it to .env.local" },
+      { error: "OPENAI_API_KEY not configured. Set it in your environment variables (or .env.local for local dev)." },
       { status: 500 }
     );
   }
