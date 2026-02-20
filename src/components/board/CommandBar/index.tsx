@@ -13,10 +13,16 @@ function AgentButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-6 left-1/2 z-[999] -translate-x-1/2 flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:shadow-violet-500/30 hover:scale-105 active:scale-95"
+      className="fixed bottom-6 mb-20 left-1/2 z-[999] -translate-x-1/2 flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:shadow-violet-500/30 hover:scale-105 active:scale-95"
       title="AI Agent (⌘K)"
     >
-      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg
+        className="h-4 w-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -24,7 +30,9 @@ function AgentButton({ onClick }: { onClick: () => void }) {
         />
       </svg>
       AI Agent
-      <kbd className="ml-1 rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-mono">⌘K</kbd>
+      <kbd className="ml-1 rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-mono">
+        ⌘K
+      </kbd>
     </button>
   );
 }
@@ -43,10 +51,13 @@ export function CommandBar({ editor, boardId }: CommandBarProps) {
   const { setLocalState } = useAwarenessContext();
 
   const broadcastAiStatus = useCallback(
-    (aiStatus: "idle" | "thinking" | "executing" | null, aiPrompt?: string | null) => {
+    (
+      aiStatus: "idle" | "thinking" | "executing" | null,
+      aiPrompt?: string | null,
+    ) => {
       setLocalState({ aiStatus, aiPrompt });
     },
-    [setLocalState]
+    [setLocalState],
   );
 
   // Clean up reset timer on unmount
@@ -136,7 +147,7 @@ export function CommandBar({ editor, boardId }: CommandBarProps) {
         broadcastAiStatus(null, null);
       }
     },
-    [prompt, editor, boardId, broadcastAiStatus]
+    [prompt, editor, boardId, broadcastAiStatus],
   );
 
   if (!isOpen) {

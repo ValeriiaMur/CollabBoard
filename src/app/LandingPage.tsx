@@ -175,11 +175,8 @@ export function LandingPage() {
             <img
               src="/images/logo-192.png"
               alt="CollabBoard"
-              className="h-8 w-8 rounded-lg"
+              className="h-16 w-16 rounded-lg"
             />
-            <span className="text-lg font-bold tracking-tight text-gray-900">
-              Collab<span className="text-indigo-500">Board</span>
-            </span>
           </div>
           <button
             onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
@@ -191,7 +188,7 @@ export function LandingPage() {
       </nav>
 
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="relative flex min-h-screen items-center justify-center px-6 pt-16">
+      <section className="relative flex min-h-screen items-center justify-center px-6">
         <GradientBlobs />
         <FloatingCursors />
 
@@ -253,22 +250,19 @@ export function LandingPage() {
           </div>
 
           {/* Hero image — the user's gif */}
-          <div className="relative mx-auto mt-16 max-w-lg">
-            <div className="hero-glow" />
-            <div className="relative overflow-hidden rounded-3xl border border-gray-200/60 bg-white shadow-2xl shadow-gray-200/50">
-              <img
-                src="https://cdn.dribbble.com/userupload/19580535/file/original-246fa0b6a302830070007a9d74a14fe9.gif"
-                alt="CollabBoard in action"
-                className="w-full"
-              />
-            </div>
+          <div className="mt-12">
+            <img
+              src="https://cdn.dribbble.com/userupload/19580535/file/original-246fa0b6a302830070007a9d74a14fe9.gif"
+              alt="Collaboration"
+              className="mx-auto h-60 w-60 rounded-full object-cover shadow-lg ring-4 ring-white"
+            />
           </div>
         </div>
       </section>
 
       {/* ── Social proof bar ─────────────────────────────────── */}
-      <section className="border-y border-gray-100 bg-white/50 py-8 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-12 gap-y-4 px-6 text-center text-sm text-gray-400">
+      <section className="border-y border-gray-100 bg-white/50 py-4 backdrop-blur-sm">
+        <div className="mx-auto flex flex-wrap items-center justify-center gap-x-12 gap-y-4 px-6 text-center text-sm text-gray-400">
           <span className="flex items-center gap-2">
             <span className="text-2xl font-bold text-gray-800">3</span>
             AI Agent Personalities
