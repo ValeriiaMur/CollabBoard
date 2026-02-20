@@ -27,6 +27,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
   return (
     <BoardRoom
       boardId={params.id}
+      userId={session.user.id}
       userName={userName}
       userColor={userColor}
       userImage={userImage}
