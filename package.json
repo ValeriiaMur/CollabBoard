@@ -19,6 +19,7 @@
     "test:langfuse": "vitest run --testPathPattern=langfuse"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
     "@auth/firebase-adapter": "^2.11.1",
     "@langchain/core": "^0.3.58",
     "@langchain/openai": "^0.4.9",
