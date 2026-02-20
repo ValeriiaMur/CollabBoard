@@ -1,7 +1,9 @@
 /**
  * Bot Action Poll Endpoint
  *
- * GET  — Fetch pending bot actions for a board (called by client-side listener)
+ * GET  — Atomically claim & fetch pending bot actions for a board.
+ *        Uses a Firestore transaction to set status="processing" + claimedBy
+ *        so that only one client processes each action (prevents duplicates).
  * POST — Mark a pending action as completed
  */
 
@@ -21,23 +23,52 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing boardId" }, { status: 400 });
   }
 
+  const clientId = session.user.id || session.user.email || "unknown";
+
   try {
-    const snap = await db
+    const collectionRef = db
       .collection("boards")
       .doc(boardId)
-      .collection("pendingBotActions")
+      .collection("pendingBotActions");
+
+    // Query pending items — uses only equality filter (no composite index needed)
+    const snap = await collectionRef
       .where("status", "==", "pending")
-      .orderBy("createdAt", "asc")
       .limit(5)
       .get();
 
-    const pending = snap.docs.map((doc) => ({
-      id: doc.id,
-      botName: doc.data().botName || "Bot",
-      actions: doc.data().actions || [],
-    }));
+    if (snap.empty) {
+      return NextResponse.json([]);
+    }
 
-    return NextResponse.json(pending);
+    // Atomically claim each doc inside a transaction so only one client gets it
+    const claimed: { id: string; botName: string; actions: unknown[] }[] = [];
+
+    for (const docSnap of snap.docs) {
+      try {
+        await db.runTransaction(async (tx) => {
+          const freshDoc = await tx.get(collectionRef.doc(docSnap.id));
+          if (!freshDoc.exists || freshDoc.data()?.status !== "pending") {
+            // Another client already claimed it — skip
+            return;
+          }
+          tx.update(collectionRef.doc(docSnap.id), {
+            status: "processing",
+            claimedBy: clientId,
+            claimedAt: new Date(),
+          });
+          claimed.push({
+            id: docSnap.id,
+            botName: freshDoc.data()?.botName || "Bot",
+            actions: freshDoc.data()?.actions || [],
+          });
+        });
+      } catch {
+        // Transaction contention — another client won, skip this doc
+      }
+    }
+
+    return NextResponse.json(claimed);
   } catch (err) {
     console.error("[Bot Poll] Error:", err);
     return NextResponse.json([], { status: 200 });

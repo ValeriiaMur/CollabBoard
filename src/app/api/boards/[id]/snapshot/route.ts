@@ -32,11 +32,29 @@ export async function POST(
       );
     }
 
+    // Validate mime type — only allow safe image formats
+    if (
+      !thumbnailDataUrl.startsWith("data:image/png") &&
+      !thumbnailDataUrl.startsWith("data:image/jpeg") &&
+      !thumbnailDataUrl.startsWith("data:image/webp")
+    ) {
+      return NextResponse.json(
+        { error: "Invalid thumbnail format. Only PNG, JPEG, and WebP are allowed." },
+        { status: 400 }
+      );
+    }
+
     const boardRef = db.collection("boards").doc(params.id);
     const boardSnap = await boardRef.get();
 
     if (!boardSnap.exists) {
       return NextResponse.json({ error: "Board not found" }, { status: 404 });
+    }
+
+    // Verify board ownership
+    const boardData = boardSnap.data();
+    if (boardData?.ownerId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     await boardRef.update({
