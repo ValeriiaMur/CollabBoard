@@ -2,11 +2,10 @@
 
 Real-time collaborative whiteboard with AI-powered agents built with Next.js, tldraw, Yjs, and PartyKit.
 
-*URL: https://collab--collab-487622.us-central1.hosted.app/*
-
-<img width="1349" height="768" alt="Screenshot 2026-02-17 at 11 12 35 AM" src="https://github.com/user-attachments/assets/3962dcc3-2cfb-4bcd-b192-eb0bda5575aa" />
-
-<img width="1362" height="852" alt="Screenshot 2026-02-17 at 11 14 12 AM" src="https://github.com/user-attachments/assets/d86d4520-054d-4bfc-85d7-9da351a5641e" />
+<img width="1479" height="838" alt="Screenshot 2026-02-20 at 10 13 43 AM" src="https://github.com/user-attachments/assets/0754823f-2668-434e-99a0-2c6d0abef900" />
+<img width="1472" height="838" alt="Screenshot 2026-02-20 at 8 05 35 PM" src="https://github.com/user-attachments/assets/d4c22ccd-622c-44d6-9737-bdf08309de8d" />
+<img width="1470" height="820" alt="Screenshot 2026-02-20 at 8 05 05 PM" src="https://github.com/user-attachments/assets/0b3f7ef0-d371-4ac4-bcee-8e465df1ed49" />
+<img width="1366" height="822" alt="Screenshot 2026-02-20 at 7 18 58 PM" src="https://github.com/user-attachments/assets/af3f94e0-7e4e-480d-a828-6e3d26c863a3" />
 
 ## Tech Stack
 
