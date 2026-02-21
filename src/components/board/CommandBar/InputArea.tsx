@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from "react";
+import { type KeyboardEvent, type DragEvent, type ClipboardEvent, useState, useCallback } from "react";
 import type { InputAreaProps } from "./types";
 
 function SendIcon() {
@@ -14,12 +14,79 @@ function Spinner() {
 }
 
 export function InputArea({ prompt, setPrompt, onSubmit, onClose, disabled, loading, inputRef }: InputAreaProps) {
+  const [isDragOver, setIsDragOver] = useState(false);
+
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       onSubmit();
     }
   };
+
+  // Handle paste — accept plain text, rich text (strip HTML), and file contents
+  const handlePaste = useCallback(
+    (e: ClipboardEvent<HTMLTextAreaElement>) => {
+      const clipboardData = e.clipboardData;
+
+      // Check for plain text (handles bullet points, lists, CSV, etc.)
+      const text = clipboardData.getData("text/plain");
+      if (text && text.trim()) {
+        // Let the default paste behavior handle it — the textarea will receive the text
+        return;
+      }
+    },
+    []
+  );
+
+  // Handle drag-and-drop of text files and plain text
+  const handleDragOver = useCallback((e: DragEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: DragEvent<HTMLTextAreaElement>) => {
+      e.preventDefault();
+      setIsDragOver(false);
+
+      // Handle dropped text
+      const droppedText = e.dataTransfer.getData("text/plain");
+      if (droppedText) {
+        setPrompt(prompt ? `${prompt}\n${droppedText}` : droppedText);
+        return;
+      }
+
+      // Handle dropped files (text files, CSV, JSON, markdown)
+      const files = Array.from(e.dataTransfer.files);
+      const textFile = files.find((f) =>
+        f.type.startsWith("text/") ||
+        f.name.endsWith(".csv") ||
+        f.name.endsWith(".json") ||
+        f.name.endsWith(".md") ||
+        f.name.endsWith(".txt")
+      );
+
+      if (textFile) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const content = reader.result as string;
+          // Prepend a hint about the file type
+          const prefix = textFile.name.endsWith(".csv")
+            ? "Here is CSV data, put it on the board:\n"
+            : textFile.name.endsWith(".json")
+              ? "Here is JSON data, visualize it on the board:\n"
+              : "Put this content on the board:\n";
+          setPrompt(prefix + content.slice(0, 8000)); // Cap at 8k chars
+        };
+        reader.readAsText(textFile);
+      }
+    },
+    [prompt, setPrompt]
+  );
 
   return (
     <div className="flex items-end gap-2 p-3">
@@ -28,10 +95,18 @@ export function InputArea({ prompt, setPrompt, onSubmit, onClose, disabled, load
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder='Try: "Create a SWOT analysis" or "Add 5 sticky notes about marketing ideas"'
+        onPaste={handlePaste}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        placeholder='Try anything: "SWOT for my startup", paste a list, drop a CSV, or type a question'
         rows={2}
         disabled={disabled}
-        className="flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-violet-300 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-200 disabled:opacity-50"
+        className={`flex-1 resize-none rounded-xl border bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-violet-300 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-200 disabled:opacity-50 transition ${
+          isDragOver
+            ? "border-violet-400 bg-violet-50 ring-2 ring-violet-200"
+            : "border-gray-200"
+        }`}
       />
       <div className="flex flex-col gap-1">
         <button

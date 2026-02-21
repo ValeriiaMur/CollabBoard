@@ -51,3 +51,6 @@ Thumbs.db
 
 # firebase
 firebase-debug.log
+
+# partykit
+.partykit/

@@ -1,14 +1,23 @@
 import type { QuickPromptsProps } from "./types";
 
 const QUICK_PROMPTS = [
-  // Templates (supported by the agent's system prompt)
-  { label: "SWOT", prompt: "Create a SWOT analysis with 4 frames and starter stickies for each quadrant" },
-  { label: "Kanban", prompt: "Create a Kanban board with 4 columns: To Do, In Progress, Review, Done" },
-  { label: "Retro", prompt: "Create a retrospective board with 3 frames: What Went Well, What Didn't, Action Items" },
-  { label: "Pros/Cons", prompt: "Create a Pros and Cons board with green stickies for pros and red for cons" },
-  // Action-based commands
-  { label: "Add stickies", prompt: "Create 6 sticky notes with ideas about" },
-  { label: "Add shapes", prompt: "Create a rectangle and 4 sticky notes inside it labeled" },
+  // Templates (now use compound create_template tool)
+  { label: "SWOT", prompt: "Create a SWOT analysis template" },
+  { label: "Kanban", prompt: "Create a Kanban board" },
+  { label: "Retro", prompt: "Create a retrospective board" },
+  { label: "Pros/Cons", prompt: "Create a Pros and Cons comparison" },
+  { label: "Timeline", prompt: "Create a timeline" },
+  { label: "Mind Map", prompt: "Create a mind map about" },
+  { label: "Empathy Map", prompt: "Create an empathy map" },
+  { label: "Journey Map", prompt: "Create a user journey map" },
+  // Flowcharts / processes
+  { label: "Flowchart", prompt: "Create a flowchart for" },
+  { label: "Decision Tree", prompt: "Create a decision tree for" },
+  // General actions
+  { label: "Brainstorm", prompt: "Brainstorm ideas about" },
+  { label: "Organize", prompt: "Organize the existing items on the board into groups" },
+  { label: "Summarize", prompt: "Summarize everything on the board" },
+  { label: "Compare", prompt: "Compare" },
 ] as const;
 
 export function QuickPrompts({ onSelect, inputRef }: QuickPromptsProps) {

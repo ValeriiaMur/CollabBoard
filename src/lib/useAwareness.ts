@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type YPartyKitProvider from "y-partykit/provider";
 
 /**
@@ -23,15 +23,23 @@ export interface OtherUser extends AwarenessUser {
   clientId: number;
 }
 
+/** Throttle interval for awareness change handling (ms) */
+const AWARENESS_THROTTLE_MS = 50;
+
 /**
  * Hook that reads Yjs awareness state from a YPartyKitProvider.
  * Returns the current user's local state setter + a live list of other users.
  *
- * Replaces Liveblocks' useMyPresence / useOthers / useSelf.
+ * Performance optimizations:
+ *   - Awareness changes throttled to 50ms (prevents re-render storms at 60fps cursor)
+ *   - setCursor reuses a single object reference pattern
+ *   - Others list only updated when member count or data actually changes
  */
 export function useAwareness(provider: YPartyKitProvider | null) {
   const [others, setOthers] = useState<OtherUser[]>([]);
   const [self, setSelf] = useState<AwarenessUser | null>(null);
+  const throttleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingUpdateRef = useRef(false);
 
   // Re-derive the others list from awareness states
   const refreshOthers = useCallback(() => {
@@ -54,14 +62,30 @@ export function useAwareness(provider: YPartyKitProvider | null) {
     if (localState) setSelf(localState);
   }, [provider]);
 
-  // Subscribe to awareness changes
+  // Subscribe to awareness changes — THROTTLED to prevent re-render storms
   useEffect(() => {
     if (!provider) return;
 
     const awareness = provider.awareness;
 
     function handleChange() {
+      // If a throttle timer is already pending, just mark that we have a pending update
+      if (throttleTimerRef.current) {
+        pendingUpdateRef.current = true;
+        return;
+      }
+
+      // Execute immediately for the first event
       refreshOthers();
+
+      // Then throttle subsequent events
+      throttleTimerRef.current = setTimeout(() => {
+        throttleTimerRef.current = null;
+        if (pendingUpdateRef.current) {
+          pendingUpdateRef.current = false;
+          refreshOthers();
+        }
+      }, AWARENESS_THROTTLE_MS);
     }
 
     awareness.on("change", handleChange);
@@ -71,6 +95,10 @@ export function useAwareness(provider: YPartyKitProvider | null) {
 
     return () => {
       awareness.off("change", handleChange);
+      if (throttleTimerRef.current) {
+        clearTimeout(throttleTimerRef.current);
+        throttleTimerRef.current = null;
+      }
     };
   }, [provider, refreshOthers]);
 

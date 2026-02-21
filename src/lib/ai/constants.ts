@@ -21,6 +21,11 @@ export const VALID_ACTION_TYPES = [
   "change_color",
   "summarize_board",
   "group_items",
+  // Compound tools
+  "create_layout",
+  "create_flowchart",
+  "bulk_create",
+  "create_template",
 ] as const;
 
 export type ActionType = (typeof VALID_ACTION_TYPES)[number];
@@ -44,6 +49,11 @@ export const TYPE_ALIASES: Readonly<Record<string, ActionType>> = {
   changeColor: "change_color",
   summarizeBoard: "summarize_board",
   groupItems: "group_items",
+  // Compound tool camelCase variants
+  createLayout: "create_layout",
+  createFlowchart: "create_flowchart",
+  bulkCreate: "bulk_create",
+  createTemplate: "create_template",
   // short / alternate names
   sticky: "create_sticky",
   note: "create_sticky",
@@ -66,12 +76,27 @@ export const TYPE_ALIASES: Readonly<Record<string, ActionType>> = {
   // create_ prefix without exact match
   create_note: "create_sticky",
   create_sticky_note: "create_sticky",
+  // Compound tool short names
+  layout: "create_layout",
+  flowchart: "create_flowchart",
+  flow: "create_flowchart",
+  process: "create_flowchart",
+  batch: "bulk_create",
+  bulk: "bulk_create",
+  template: "create_template",
+  // Common template aliases that LLMs might produce
+  swot: "create_template",
+  kanban: "create_template",
+  retro: "create_template",
+  retrospective: "create_template",
 };
 
 // ─── Layout defaults for executeActions ──────────────────────
 export const LAYOUT = {
-  /** Delay between animated action executions (ms) */
+  /** Delay between animated simple action executions (ms) */
   ANIMATION_DELAY: 150,
+  /** Delay for compound actions — just enough for a render tick (ms) */
+  COMPOUND_DELAY: 30,
   /** Default sticky note dimensions */
   STICKY_SIZE: 200,
   /** Minimum spacing between stickies */
@@ -87,4 +112,12 @@ export const LAYOUT = {
   /** Default group frame dimensions */
   DEFAULT_GROUP_FRAME_WIDTH: 500,
   DEFAULT_GROUP_FRAME_HEIGHT: 400,
+  /** Compound layout constants */
+  LAYOUT_SECTION_WIDTH: 480,
+  LAYOUT_SECTION_GAP: 30,
+  LAYOUT_MIN_FRAME_HEIGHT: 280,
+  /** Flowchart node dimensions */
+  FLOWCHART_NODE_W: 180,
+  FLOWCHART_NODE_H: 80,
+  FLOWCHART_GAP: 100,
 } as const;

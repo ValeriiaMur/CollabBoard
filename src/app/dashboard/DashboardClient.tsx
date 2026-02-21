@@ -115,7 +115,11 @@ export function DashboardClient({
               <span className="text-sm text-gray-600">{userName}</span>
             </div>
             <button
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => {
+                // Clear confetti flag so it fires again on next sign-in
+                sessionStorage.removeItem(CONFETTI_SESSION_KEY);
+                signOut({ callbackUrl: "/" });
+              }}
               className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50"
             >
               Sign Out

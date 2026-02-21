@@ -4,6 +4,12 @@
  * Polls Firestore for pending bot actions and executes them on the tldraw canvas.
  * External bots POST actions to /api/agents/bot-action, which stores them in
  * Firestore. This hook picks them up and plays them with the agent simulation.
+ *
+ * Performance & reliability improvements:
+ *   - AbortController cancels in-flight requests on unmount
+ *   - Max retry limit (10) prevents infinite polling on persistent errors
+ *   - Batched action execution via editor.batch() instead of sequential
+ *   - Reduced per-action delay (80ms vs 200ms)
  */
 
 "use client";
@@ -16,6 +22,10 @@ import type { BoardAction } from "../ai/tools";
 const POLL_INTERVAL = 3000;
 /** Max backoff interval after consecutive errors */
 const MAX_BACKOFF = 60_000;
+/** Max consecutive errors before stopping polling */
+const MAX_RETRIES = 10;
+/** Delay between individual actions within a batch (ms) */
+const ACTION_DELAY = 80;
 
 interface PendingAction {
   id: string;
@@ -29,14 +39,25 @@ export function useBotActionListener(
 ) {
   const processingRef = useRef(false);
   const consecutiveErrorsRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const pollAndExecute = useCallback(async () => {
     if (!editor || processingRef.current) return;
+    if (consecutiveErrorsRef.current >= MAX_RETRIES) {
+      console.warn("[BotListener] Max retries reached, stopping poll");
+      return;
+    }
+
     processingRef.current = true;
+
+    // Create abort controller for this request
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const res = await fetch(
-        `/api/agents/bot-action/poll?boardId=${encodeURIComponent(boardId)}`
+        `/api/agents/bot-action/poll?boardId=${encodeURIComponent(boardId)}`,
+        { signal: controller.signal }
       );
 
       if (!res.ok) {
@@ -54,37 +75,73 @@ export function useBotActionListener(
           `[BotListener] Executing ${item.actions.length} actions from ${item.botName}`
         );
 
+        // Batch simple create actions together for speed
+        const simpleCreates: BoardAction[] = [];
+        const otherActions: BoardAction[] = [];
+
         for (const action of item.actions) {
+          if (
+            action.type === "create_sticky" ||
+            action.type === "create_text" ||
+            action.type === "create_frame"
+          ) {
+            simpleCreates.push(action);
+          } else {
+            otherActions.push(action);
+          }
+        }
+
+        // Execute simple creates in one batch
+        if (simpleCreates.length > 0) {
+          editor.batch(() => {
+            for (const action of simpleCreates) {
+              executeMinimalAction(editor, action);
+            }
+          });
+        }
+
+        // Execute remaining actions with minimal delay
+        for (const action of otherActions) {
           try {
             executeMinimalAction(editor, action);
-            await new Promise((r) => setTimeout(r, 200));
+            await new Promise((r) => setTimeout(r, ACTION_DELAY));
           } catch (err) {
             console.warn("[BotListener] Action failed:", err);
           }
         }
 
-        // Mark as completed
+        // Mark as completed (don't abort this — we want it to complete)
         await fetch(`/api/agents/bot-action/poll`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ boardId, pendingId: item.id }),
+        }).catch(() => {
+          // Non-critical — action already executed on canvas
+          console.warn("[BotListener] Failed to mark action as completed");
         });
       }
-    } catch {
+    } catch (err) {
+      // Ignore abort errors (expected on unmount)
+      if (err instanceof DOMException && err.name === "AbortError") return;
+
       consecutiveErrorsRef.current++;
       if (consecutiveErrorsRef.current <= 2) {
         console.warn("[BotListener] Poll failed, will back off");
       }
-      // Silently back off after initial warnings
     } finally {
       processingRef.current = false;
+      abortControllerRef.current = null;
     }
   }, [editor, boardId]);
 
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
+    let stopped = false;
 
     const scheduleNext = () => {
+      if (stopped) return;
+      if (consecutiveErrorsRef.current >= MAX_RETRIES) return;
+
       // Exponential backoff: 3s → 6s → 12s → 24s → 48s → 60s (cap)
       const errors = consecutiveErrorsRef.current;
       const delay = errors === 0
@@ -100,7 +157,12 @@ export function useBotActionListener(
     // Poll immediately on mount, then schedule
     pollAndExecute().then(scheduleNext);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      stopped = true;
+      clearTimeout(timeoutId);
+      // Abort any in-flight fetch
+      abortControllerRef.current?.abort();
+    };
   }, [pollAndExecute]);
 }
 
@@ -159,14 +221,16 @@ function executeMinimalAction(editor: Editor, action: BoardAction) {
       });
       break;
     case "create_multiple_stickies":
-      for (const sticky of action.stickies) {
-        editor.createShape({
-          type: "note",
-          x: sticky.position.x,
-          y: sticky.position.y,
-          props: { text: sticky.text, color: sticky.color || "yellow", size: "m" },
-        });
-      }
+      editor.batch(() => {
+        for (const sticky of action.stickies) {
+          editor.createShape({
+            type: "note",
+            x: sticky.position.x,
+            y: sticky.position.y,
+            props: { text: sticky.text, color: sticky.color || "yellow", size: "m" },
+          });
+        }
+      });
       break;
     default:
       break;

@@ -9,6 +9,11 @@
  * The agent cursor smoothly moves to each action's target position,
  * pauses briefly, then the action executes — making it look like
  * a real user drawing on the board.
+ *
+ * Reliability improvements:
+ *   - try/finally ensures activeAgentsRef cleanup even on errors
+ *   - cancelAll properly removes all simulated agents from presence
+ *   - Compound action types handled (create_layout, create_flowchart, etc.)
  */
 
 import { useCallback, useRef } from "react";
@@ -56,6 +61,15 @@ function getActionPosition(action: BoardAction): { x: number; y: number } | null
       return null; // modifies existing shapes
     case "group_items":
       return action.groups[0]?.framePosition || null;
+    // Compound action types
+    case "create_layout":
+      return action.position;
+    case "create_flowchart":
+      return action.position;
+    case "bulk_create":
+      return action.items?.[0]?.position || null;
+    case "create_template":
+      return action.position || null;
     default:
       return null;
   }
@@ -101,6 +115,8 @@ interface AgentSimulationCallbacks {
 
 export function useAgentSimulation() {
   const activeAgentsRef = useRef<Set<number>>(new Set());
+  // Keep track of callbacks so cancelAll can clean up presence
+  const callbacksRef = useRef<AgentSimulationCallbacks | null>(null);
 
   /**
    * Execute a single agent's actions with animated cursor simulation.
@@ -117,67 +133,84 @@ export function useAgentSimulation() {
       const agent = AGENT_PERSONALITIES[personality];
       if (!agent || actions.length === 0) return 0;
 
+      // Store callbacks for cancelAll cleanup
+      callbacksRef.current = callbacks;
+
       const clientId = AGENT_CLIENT_ID_BASE + index;
       activeAgentsRef.current.add(clientId);
 
-      // 1. Add agent to presence (appears in avatars + cursors)
-      callbacks.addAgent({
-        clientId,
-        name: agent.name,
-        color: agent.color,
-        image: agent.icon,
-        cursor: null,
-        aiStatus: "thinking",
-        aiPrompt: null,
-      });
+      try {
+        // 1. Add agent to presence (appears in avatars + cursors)
+        callbacks.addAgent({
+          clientId,
+          name: agent.name,
+          color: agent.color,
+          image: agent.icon,
+          cursor: null,
+          aiStatus: "thinking",
+          aiPrompt: null,
+        });
 
-      // Brief "thinking" pause
-      await sleep(600);
+        // Brief "thinking" pause
+        await sleep(600);
 
-      // 2. Switch to "executing" status
-      callbacks.updateAgent(clientId, { aiStatus: "executing" });
+        // 2. Switch to "executing" status
+        callbacks.updateAgent(clientId, { aiStatus: "executing" });
 
-      // 3. Flatten actions and execute with cursor animation
-      const steps = flattenActions(actions);
-      let executed = 0;
+        // 3. Flatten actions and execute with cursor animation
+        const steps = flattenActions(actions);
+        let executed = 0;
 
-      for (const step of steps) {
-        if (!activeAgentsRef.current.has(clientId)) break; // cancelled
+        for (const step of steps) {
+          if (!activeAgentsRef.current.has(clientId)) break; // cancelled
 
-        // Move cursor to target position
-        if (step.position) {
-          callbacks.updateAgent(clientId, {
-            cursor: step.position,
-          });
-          await sleep(CURSOR_MOVE_DURATION);
-          await sleep(CURSOR_PAUSE);
+          // Move cursor to target position
+          if (step.position) {
+            callbacks.updateAgent(clientId, {
+              cursor: step.position,
+            });
+            await sleep(CURSOR_MOVE_DURATION);
+            await sleep(CURSOR_PAUSE);
+          }
+
+          // Execute the action on the tldraw editor
+          try {
+            executeSingleActionOnEditor(editor, step.action);
+            executed++;
+          } catch (err) {
+            console.warn(`[AgentSim] ${agent.name} action failed:`, err);
+          }
+
+          await sleep(POST_ACTION_DELAY);
         }
 
-        // Execute the action on the tldraw editor
-        try {
-          executeSingleActionOnEditor(editor, step.action);
-          executed++;
-        } catch (err) {
-          console.warn(`[AgentSim] ${agent.name} action failed:`, err);
-        }
+        // 4. Brief pause, then remove agent
+        callbacks.updateAgent(clientId, { aiStatus: "idle", cursor: null });
+        await sleep(1000);
 
-        await sleep(POST_ACTION_DELAY);
+        return executed;
+      } finally {
+        // Always clean up — even if an error occurs mid-simulation
+        callbacks.removeAgent(clientId);
+        activeAgentsRef.current.delete(clientId);
       }
-
-      // 4. Brief pause, then remove agent
-      callbacks.updateAgent(clientId, { aiStatus: "idle", cursor: null });
-      await sleep(1000);
-
-      callbacks.removeAgent(clientId);
-      activeAgentsRef.current.delete(clientId);
-
-      return executed;
     },
     []
   );
 
-  /** Cancel all active agent simulations */
+  /** Cancel all active agent simulations and clean up presence */
   const cancelAll = useCallback(() => {
+    const callbacks = callbacksRef.current;
+    if (callbacks) {
+      // Remove each active agent from presence before clearing
+      activeAgentsRef.current.forEach((clientId) => {
+        try {
+          callbacks.removeAgent(clientId);
+        } catch {
+          // Best-effort cleanup
+        }
+      });
+    }
     activeAgentsRef.current.clear();
   }, []);
 
@@ -276,7 +309,7 @@ function executeSingleActionOnEditor(editor: Editor, action: BoardAction) {
       break;
     }
     default: {
-      // For move/resize/update/change_color/connector/group — less common for agents
+      // For move/resize/update/change_color/connector/group/compound — handled by executeActions.ts
       break;
     }
   }
