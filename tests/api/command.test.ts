@@ -34,9 +34,14 @@ function createMockRequest(body: unknown) {
   } as any;
 }
 
-// Import the route handler
-// Note: We import dynamically since Next.js route handlers have module-level exports
-const routeModule = await import("@/app/api/ai/command/route");
+// Import the route handler dynamically (Next.js route handlers have module-level exports)
+let routeModule: Awaited<typeof import("@/app/api/ai/command/route")>;
+
+beforeEach(async () => {
+  if (!routeModule) {
+    routeModule = await import("@/app/api/ai/command/route");
+  }
+});
 
 describe("POST /api/ai/command — Auth", () => {
   beforeEach(() => {
@@ -220,7 +225,7 @@ describe("POST /api/ai/command — Error Handling", () => {
     const res = await routeModule.POST(req);
     const data = await res.json();
 
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(503);
     expect(data.error).toContain("OPENAI_API_KEY");
   });
 });

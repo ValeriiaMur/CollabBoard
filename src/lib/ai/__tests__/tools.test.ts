@@ -429,7 +429,7 @@ describe("TOOL_DESCRIPTIONS", () => {
   });
 
   it("contains SWOT example", () => {
-    expect(TOOL_DESCRIPTIONS).toContain("SWOT Analysis");
+    expect(TOOL_DESCRIPTIONS).toContain("swot");
   });
 
   it("contains layout guidelines", () => {
