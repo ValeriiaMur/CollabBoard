@@ -575,32 +575,31 @@ function executeSingleAction(editor: Editor, action: BoardAction): void {
           });
         });
 
-        // Create edges as bound arrows
+        // Create edges as positional arrows between node centers.
+        // We use point-based start/end (not bindings) because nodes
+        // are created in the same batch and may not be queryable yet.
+        const nodePositions = new Map<string, { x: number; y: number }>();
+        action.nodes.forEach((node, idx) => {
+          const nx = isHorizontal ? baseX + idx * (nodeW + gap) : baseX;
+          const ny = isHorizontal ? baseY : baseY + idx * (nodeH + gap);
+          nodePositions.set(node.id, { x: nx + nodeW / 2, y: ny + nodeH / 2 });
+        });
+
         for (const edge of action.edges) {
-          const fromTlId = nodeIdMap.get(edge.from);
-          const toTlId = nodeIdMap.get(edge.to);
-          if (!fromTlId || !toTlId) continue;
+          const fromPos = nodePositions.get(edge.from);
+          const toPos = nodePositions.get(edge.to);
+          if (!fromPos || !toPos) continue;
 
           editor.createShape({
             id: createShapeId(),
             type: "arrow",
+            x: fromPos.x,
+            y: fromPos.y,
             props: {
               text: edge.label || "",
               color: "black",
-              start: {
-                type: "binding",
-                boundShapeId: fromTlId,
-                normalizedAnchor: { x: 0.5, y: 0.5 },
-                isExact: false,
-                isPrecise: false,
-              },
-              end: {
-                type: "binding",
-                boundShapeId: toTlId,
-                normalizedAnchor: { x: 0.5, y: 0.5 },
-                isExact: false,
-                isPrecise: false,
-              },
+              start: { x: 0, y: 0 },
+              end: { x: toPos.x - fromPos.x, y: toPos.y - fromPos.y },
             },
           });
         }

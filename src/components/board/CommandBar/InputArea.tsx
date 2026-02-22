@@ -99,7 +99,7 @@ export function InputArea({ prompt, setPrompt, onSubmit, onClose, disabled, load
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        placeholder='Try anything: "SWOT for my startup", paste a list, drop a CSV, or type a question'
+        placeholder='Try "create a sticky" or "create a SWOT analysis"'
         rows={2}
         disabled={disabled}
         className={`flex-1 resize-none rounded-xl border bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-violet-300 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-200 disabled:opacity-50 transition ${
