@@ -295,7 +295,11 @@ export function BoardHeader({
 
           {/* Sign Out */}
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => {
+              // Clear confetti flag so it fires again on next sign-in
+              try { sessionStorage.removeItem("collabboard_confetti_shown"); } catch {}
+              signOut({ callbackUrl: "/" });
+            }}
             className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50"
           >
             Sign Out

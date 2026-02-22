@@ -48,6 +48,7 @@ export function CommandBar({ editor, boardId }: CommandBarProps) {
   const [durationMs, setDurationMs] = useState<number | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { setLocalState } = useAwarenessContext();
 
   const broadcastAiStatus = useCallback(
@@ -60,10 +61,11 @@ export function CommandBar({ editor, boardId }: CommandBarProps) {
     [setLocalState],
   );
 
-  // Clean up reset timer on unmount
+  // Clean up on unmount
   useEffect(() => {
     return () => {
       if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+      abortControllerRef.current?.abort();
     };
   }, []);
 
@@ -94,6 +96,11 @@ export function CommandBar({ editor, boardId }: CommandBarProps) {
       const finalPrompt = overridePrompt || prompt;
       if (!finalPrompt.trim() || !editor) return;
 
+      // Abort any in-flight request (deduplication)
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       setStatus("thinking");
       setError(null);
       setReasoning(null);
@@ -109,6 +116,7 @@ export function CommandBar({ editor, boardId }: CommandBarProps) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt: finalPrompt, boardState, boardId }),
+          signal: controller.signal,
         });
 
         const data = await res.json();
@@ -142,6 +150,9 @@ export function CommandBar({ editor, boardId }: CommandBarProps) {
           resetTimerRef.current = null;
         }, 4000);
       } catch (err) {
+        // Ignore abort errors (user submitted new request)
+        if (err instanceof DOMException && err.name === "AbortError") return;
+
         setError(err instanceof Error ? err.message : "Something went wrong");
         setStatus("error");
         broadcastAiStatus(null, null);

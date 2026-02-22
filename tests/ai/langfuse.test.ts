@@ -69,7 +69,7 @@ async function fetchLangfuseGenerations(traceId: string) {
 
 // ─── Helper: call our agent directly ───────────────────────────
 
-async function callAgent(prompt: string, boardState = { shapes: [] }) {
+async function callAgent(prompt: string, boardState: { shapes: Array<{ id: string; type: string; x: number; y: number; props: Record<string, unknown> }> } = { shapes: [] }) {
   // Dynamic import to ensure env vars are loaded
   const { runBoardAgent } = await import("@/lib/ai/agent");
 

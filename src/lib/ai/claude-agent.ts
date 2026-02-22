@@ -6,6 +6,11 @@
  *
  * Returns the same BoardAction[] format so it integrates with existing
  * action executors (both client-side and server-side Yjs).
+ *
+ * Performance optimizations (v2):
+ *   - Higher max_tokens (4096) for compound tool responses
+ *   - Compact board state (no pretty-print)
+ *   - Color normalization for all compound tool sub-fields
  */
 
 import Anthropic from "@anthropic-ai/sdk";
@@ -54,6 +59,79 @@ function normalizeColor(color: unknown, fallback: string): string {
   return COLOR_ALIASES[lower] || fallback;
 }
 
+/** Strip null values recursively — LLMs send "topic": null instead of omitting */
+function stripNulls(obj: Record<string, unknown>): void {
+  for (const key of Object.keys(obj)) {
+    if (obj[key] === null) {
+      delete obj[key];
+    } else if (Array.isArray(obj[key])) {
+      for (const item of obj[key] as unknown[]) {
+        if (item && typeof item === "object" && !Array.isArray(item)) {
+          stripNulls(item as Record<string, unknown>);
+        }
+      }
+    } else if (typeof obj[key] === "object") {
+      stripNulls(obj[key] as Record<string, unknown>);
+    }
+  }
+}
+
+/** Normalize all actions — types, colors, and compound sub-fields */
+function normalizeActions(actions: unknown[]): void {
+  for (const action of actions) {
+    if (!action || typeof action !== "object") continue;
+    const a = action as Record<string, unknown>;
+
+    // Strip null values — LLMs often send "topic": null instead of omitting
+    stripNulls(a);
+
+    // Normalize type aliases
+    if (a.type && typeof a.type === "string" && TYPE_ALIASES[a.type]) {
+      a.type = TYPE_ALIASES[a.type];
+    }
+
+    // Normalize top-level color
+    if (a.color) {
+      a.color = normalizeColor(a.color, "yellow");
+    }
+
+    // Normalize colors inside create_multiple_stickies
+    if (Array.isArray(a.stickies)) {
+      for (const sticky of a.stickies) {
+        if (sticky?.color) sticky.color = normalizeColor(sticky.color, "yellow");
+      }
+    }
+
+    // Normalize colors inside group_items
+    if (Array.isArray(a.groups)) {
+      for (const group of a.groups) {
+        if (group?.color) group.color = normalizeColor(group.color, "yellow");
+      }
+    }
+
+    // Normalize colors inside create_layout sections
+    if (Array.isArray(a.sections)) {
+      for (const section of a.sections) {
+        if (section?.color) section.color = normalizeColor(section.color, "yellow");
+      }
+    }
+
+    // Normalize colors inside create_flowchart nodes
+    if (Array.isArray(a.nodes)) {
+      for (const node of a.nodes) {
+        if (node?.color) node.color = normalizeColor(node.color, "light-blue");
+      }
+    }
+
+    // Normalize colors inside bulk_create items
+    if (Array.isArray(a.items)) {
+      for (const item of a.items) {
+        if (item?.color) item.color = normalizeColor(item.color, "yellow");
+      }
+    }
+  }
+}
+
 /**
  * Run a Claude agent with a specific personality.
  * Returns structured board actions that can be executed on the canvas.
@@ -88,28 +166,30 @@ export async function runClaudeAgent({
   const client = new Anthropic({ apiKey });
 
   try {
-    // Build board context
+    // Build compact board context (no pretty-print = fewer tokens)
     const boardContext =
       boardState.shapes.length > 0
         ? `\n\nCURRENT BOARD STATE (${boardState.shapes.length} items):\n${JSON.stringify(
-            boardState.shapes.map((s) => ({
-              id: s.id,
-              type: s.type,
-              x: Math.round(s.x),
-              y: Math.round(s.y),
-              text:
+            boardState.shapes.map((s) => {
+              const entry: Record<string, unknown> = {
+                id: s.id,
+                type: s.type,
+                x: Math.round(s.x),
+                y: Math.round(s.y),
+              };
+              const text =
                 (s.props as Record<string, unknown>)?.text ||
                 (s.props as Record<string, unknown>)?.label ||
-                "",
-            })),
-            null,
-            2
+                "";
+              if (text) entry.text = text;
+              return entry;
+            })
           )}`
         : "\n\nThe board is currently empty.";
 
     const response = await client.messages.create({
       model: CLAUDE_MODEL,
-      max_tokens: 2048,
+      max_tokens: 4096,
       system: agent.systemPrompt,
       messages: [
         {
@@ -136,34 +216,9 @@ export async function runClaudeAgent({
 
     const parsed = JSON.parse(jsonStr);
 
-    // Normalize action types and colors before Zod validation
+    // Normalize action types, colors, and compound sub-fields
     if (Array.isArray(parsed.actions)) {
-      for (const action of parsed.actions) {
-        // Normalize type aliases
-        if (action.type && TYPE_ALIASES[action.type]) {
-          action.type = TYPE_ALIASES[action.type];
-        }
-        // Normalize colors (LLMs often invent colors like "pink", "purple", etc.)
-        if (action.color) {
-          action.color = normalizeColor(action.color, "yellow");
-        }
-        // Normalize colors inside create_multiple_stickies
-        if (Array.isArray(action.stickies)) {
-          for (const sticky of action.stickies) {
-            if (sticky.color) {
-              sticky.color = normalizeColor(sticky.color, "yellow");
-            }
-          }
-        }
-        // Normalize colors inside group_items
-        if (Array.isArray(action.groups)) {
-          for (const group of action.groups) {
-            if (group.color) {
-              group.color = normalizeColor(group.color, "yellow");
-            }
-          }
-        }
-      }
+      normalizeActions(parsed.actions);
     }
 
     const validated = AgentResponseSchema.parse(parsed);

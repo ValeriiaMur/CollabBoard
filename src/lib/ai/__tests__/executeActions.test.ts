@@ -241,14 +241,16 @@ describe("executeActions — Manipulation tools", () => {
       { type: "update_text", shapeId: "shape:1", newText: "Updated!" },
     ]);
     expect(editor.getShape).toHaveBeenCalledWith("shape:1");
-    expect(editor.updateShape.mock.calls[0][0].props.text).toBe("Updated!");
+    const updateCall = editor.updateShape.mock.calls[0][0] as MockShape;
+    expect(updateCall.props.text).toBe("Updated!");
   });
 
   it("change_color — changes color prop", async () => {
     await runActions(editor, [
       { type: "change_color", shapeId: "shape:1", color: "red" },
     ]);
-    expect(editor.updateShape.mock.calls[0][0].props.color).toBe("red");
+    const updateCall = editor.updateShape.mock.calls[0][0] as MockShape;
+    expect(updateCall.props.color).toBe("red");
   });
 
   it("handles missing shape ID gracefully (no crash)", async () => {
